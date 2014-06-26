@@ -1,0 +1,35 @@
+/* For demo purposes only */
+
+.demo { width: 900px; margin: 0 auto; padding: 30px; overflow: hidden; }
+
+.demo-left { float: left; width: 405px; margin-right: 20px; }
+.demo-left .demo-buttons { margin-bottom: 15px; overflow: hidden; }
+.demo-left .demo-buttons .button { float: left; width: 90px; }
+.demo-left .demo-buttons .button + .button { margin-left: 15px; }
+.demo-left .button-group { float: left; margin: 6px 0 23px; width: 255px; }
+.demo-left .button-group .button { width: 33%; }
+.demo-left .button-group .active { width: 34%; }
+.demo-left .button-dropdown { float: right; margin-top: 5px; }
+.demo-left .pagination { clear: left; margin-bottom: 20px; width: 255px; }
+.demo-left .heading { width: 227px; margin-bottom: 18px; }
+.demo-left .breadcrumbs, .demo-left .alert { margin-bottom: 15px; }
+
+.demo-center { float: left; width: 200px; }
+.demo-center p { margin-bottom: 15px; }
+.demo-center p, .demo-center textarea, .demo-center input { width: 100%; }
+.demo-center textarea { height: 50px; }
+
+.demo-right { float: right; width: 255px; text-align: center; }
+.demo-right .demo-switch { float: right; margin: 4px 0 0 15px; }
+.demo-right .switch { display: block; margin-bottom: 15px; }
+.demo-right .demo-options { width: 108px; overflow: hidden; }
+.demo-right .option { float: left; margin: 7px 0 9px; }
+.demo-right .option + .option { margin-left: 12px; }
+.demo-right .tooltip { position: relative; margin: 9px 0 16px; width: 88px; }
+.demo-right .select { width: 100%; margin: 7px 0 20px; }
+.demo-right .progress { margin-bottom: 16px; }
+
+.demo .table { clear: right; float: right; width: 475px; margin-top: 5px; }
+.demo .table th:first-child, .demo .table td:first-child { width: 7%; text-align: center; }
+.demo .table th:nth-child(3), .demo .table td:nth-child(3) { width: 25%; }
+.demo .table th:last-child, .demo .table td:last-child { width: 15%; }

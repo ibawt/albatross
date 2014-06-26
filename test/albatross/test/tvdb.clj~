@@ -1,0 +1,3 @@
+(ns albatross.test.tvdb
+  (:require [:clojure.test :refer :all])
+  )
