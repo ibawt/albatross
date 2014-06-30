@@ -19,7 +19,6 @@
     (while @keep-polling
       (let [t-hash (<! channel)
             t (get @db/db t-hash)]
-        (info "got " t-hash " from channel!")
         (when (seedbox/is-complete? (get @db/db t-hash))
           (info "PollJob " (:name t) " is complete!")
           (db/update-torrent (assoc (get @db/db t-hash) :state :ready-to-download))
@@ -29,7 +28,7 @@
   (filter (fn [[k v]] (= (:state v) state)) @db/db))
 
 (defn get-polling-torrents []
-  (get-torrents-for-state :created))
+  (get-torrents-for-state :seedbox))
 
 (defn get-ready-torrents []
   (get-torrents-for-state :ready-to-download))
@@ -38,15 +37,13 @@
   (go
     (while @keep-polling
       (<! (timeout 5000))
-      (info "polling")
       (let [torrents (get-polling-torrents)]
         (doseq [[k t] torrents]
-          (info "Sending " (:name t) " to poll queue")
           (>! channel (:hash t))))
       (doseq [[k t] (get-ready-torrents)]
         (info "Sending " (:name t) " to download queue")
         (>! downloader/download-channel (:hash t)))
-      (info "waiting"))))
+      )))
 
 (defn start-poller []
   (reset! keep-polling true)

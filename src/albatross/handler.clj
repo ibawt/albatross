@@ -13,16 +13,29 @@
             [ring.middleware.defaults :refer :all]
             [ring.util.response :refer [resource-response response]]
             [albatross.views.layout :as layout]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [ring.server.standalone :as server]
+            ))
 
 (timbre/refer-timbre)
+
+(defn logger
+  [{:keys [level throwable message timestamp hostname ns]}
+   ;; Any extra appender-specific opts:
+   & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
+  ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
+  (format "%s [%s] - %s%s"
+          (-> level name clojure.string/upper-case) ns (or message "")
+          (or (timbre/stacktrace throwable "\n" (when nofonts? {})) "")))
+
+(timbre/merge-config! {:fmt-output-fn logger})
 
 (def home-dir (.getAbsolutePath (clojure.java.io/file (System/getProperty "user.home") "Torrents")))
 
 (defn send-torrent-from-post
   [request]
-  (let [decoded-torrent (ring.util.codec/base64-decode (request "file"))]
-    (torrent/find-or-create-by-bytes decoded-torrent)
+  (let [decoded-torrent (ring.util.codec/base64-decode (:file request))]
+    (db/update-torrent (assoc (torrent/find-or-create-by-bytes decoded-torrent) :state :seedbox))
     (seedbox/send-to decoded-torrent)
     "OK"))
 
@@ -35,14 +48,25 @@
 (defn destroy []
   (info "Albatross -- destroy"))
 
+(defn torrent-by-hash [params]
+  (java.io.ByteArrayInputStream. (torrent/torrent->bytes (db/hash->torrent (:hash params)))))
+
 (defroutes app-routes
   (GET "/" [] (apply str (albatross.views.layout/layout (layout/home 1))))
-  (GET "/torrents/:id" {params :params} (provider/magnet-torrent-by-hash params))
+  (GET "/torrents/:id" {params :params} (torrent-by-hash params))
   (GET "/rss" request (provider/fetch-rss))
   (POST "/search" {params :params} (provider/search-show params))
   (POST "/send_torrent" {params :params} (send-torrent-from-post params))
   (route/resources "/")
   (route/not-found "Not Found"))
 
+(def my-site-defaults
+  (assoc-in site-defaults [:security :anti-forgery] false))
+
+(alter-var-root #'*out* (constantly *out*))
+
 (def app
-  (wrap-defaults app-routes site-defaults))
+  (ring.middleware.stacktrace/wrap-stacktrace-log (wrap-defaults app-routes api-defaults)))
+
+(defn standalone []
+  (server/serve app {:stacktraces? false}))

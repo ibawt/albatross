@@ -73,10 +73,14 @@
     (catch Exception e)))
 
 (defn fetch-torrent [t]
-  (if (not (nil? (:files t)))
-    (fetch-multi t)
-    (fetch-single t))
-  true)
+  (try
+    (if (not (nil? (:files t)))
+      (fetch-multi t)
+      (fetch-single t))
+    true
+    (catch Exception e
+      (error e)
+      false)))
 
 (defn- get-rar-files [t]
   (filter #(.endsWith (join "/" (get %1 "path")) ".rar") (:files t)))

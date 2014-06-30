@@ -2,7 +2,10 @@
   (:require [clj-http.client :as http]
             [environ.core :refer :all]
             [net.cgrand.enlive-html :as enlive]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [albatross.providers.iptorrents :as iptorrents]
+            [albatross.providers.piratebay :as piratebay]
+            ))
 
 (timbre/refer-timbre)
 (def providers
@@ -21,14 +24,18 @@
 
 ; TODO complete
 (defn fetch-rss []
-  (filter-config :rss-url))
+  "returns a list of rss-urls"
+  (:body (http/get (first (filter-config :rss-url)))))
 
 (defn search-show [params]
-  (flatten
-   (map #(%1 params) (filter-config :search-show))))
+  "returns a list of urls to retreive the torrent at"
+  (info "search-show: " params)
+  (clojure.string/join "," (flatten
+                            (map #(%1 params) (filter-config :search-show)))))
 
 ; TODO should be a config somewhere
 (add-provider! albatross.providers.iptorrents/config)
+(add-provider! albatross.providers.piratebay/config)
 
 ; this should go somewhere else
 (def test-params {:description

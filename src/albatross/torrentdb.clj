@@ -2,8 +2,7 @@
   (:require [cheshire.core :refer :all]
             [clojure.java.io :as io]
             [taoensso.timbre :as timbre]
-            [clj-http.client :as http]
-            ))
+            [clj-http.client :as http]))
 
 (timbre/refer-timbre)
 
@@ -58,6 +57,7 @@
      (http/get (str "http://torcache.net/torrent/" (clojure.string/upper-case (:hash m)) ".torrent") {:as :byte-array})
      (:body))
     (catch Exception e
+      (info "no torrent found!")
       nil)))
 
 (defn clear-db! []
@@ -69,6 +69,9 @@
 
 (defn search [pattern]
   (filter #(>= (.indexOf (:name %1) pattern) 0) (vals @db)))
+
+(defn by-state [state]
+  (filter #(= (:state %1) state) (vals @db)))
 
 (defn remove-torrent! [torrent]
   (debug "Removing torrent: " (:name torrent))

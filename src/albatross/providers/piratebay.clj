@@ -24,8 +24,10 @@
 (defn download-and-save [m]
   (when-let [b (db/magnet->torrent m)]
     (prn b)
-    (torrent/save-to-disk (torrent/bytes->torrent b) b)
-    (assoc m :torrent b)))
+    (let [t (torrent/bytes->torrent b)]
+      (torrent/save-to-disk t b)
+      (db/update-torrent t)
+      (assoc m :torrent b))))
 
 (defn fetch-magnet [m]
   (let [t (db/hash->torrent (:hash m))]
@@ -45,7 +47,6 @@
    (#(map db/parse-magnet %1))
    (#(map fetch-magnet %1))
    (#(remove nil? %1))
-   (save-magnet-torrents)
    (#(map make-magnet-link %1))
    ))
 
