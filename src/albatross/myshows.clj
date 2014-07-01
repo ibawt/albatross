@@ -1,5 +1,23 @@
 (ns albatross.myshows
-  (:require [albatross.tvdb :as tvdb]
-            [liberator.core :refer :all]))
+  (:require [albatross.tvdb :as tvdb]))
 
-(defresource myshows-index)
+
+(defn index
+  "returns the collection of myshows"
+
+  [])
+
+(defn search-show
+  "searches tvdb for your show"
+  []
+  )
+
+(defn select-show
+  "selects the show"
+  [params])
+
+
+(defn create
+  "creates teh show"
+  [params]
+  )

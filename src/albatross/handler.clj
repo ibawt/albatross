@@ -64,6 +64,7 @@
   (GET "/" [] (apply str (albatross.views.layout/layout (layout/home 1))))
   (GET "/torrents/:id" {params :params} (torrent-by-hash params))
   (GET "/rss" request (provider/fetch-rss))
+  (GET "/shows/add" [] (apply str (albatross.views.layout/layout (layout/add-show))))
   (POST "/search" {params :params} (provider/search-show params))
   (POST "/send_torrent" {params :params} (send-torrent-from-post params))
   (route/resources "/")

@@ -18,4 +18,12 @@
   [:tr.series-row]
   (clone-for [i (range number-of-series)]
              [:td.series-name]
-             (content "fdsfds")))
+             (content "fdsfdsdd")))
+
+(defsnippet add-show
+  "albatross/views/add-show.html" [:div#home]
+  []
+
+  [:p]
+  (content "")
+  )
