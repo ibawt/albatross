@@ -68,10 +68,10 @@
    (reset! db {})))
 
 (defn search [pattern]
-  (filter #(>= (.indexOf (:name %1) pattern) 0) (vals @db)))
+  (filter (fn [[k v]] (>= (.indexOf (:name v) pattern) 0)) @db))
 
 (defn by-state [state]
-  (filter #(= (:state %1) state) (vals @db)))
+  (filter (fn [[k v]] (= (:state v) state)) @db))
 
 (defn remove-torrent! [torrent]
   (debug "Removing torrent: " (:name torrent))

@@ -6,6 +6,7 @@
 (timbre/refer-timbre)
 
 (def home-dir (.getAbsolutePath (clojure.java.io/file (System/getProperty "user.home") "Torrents")))
+
 (def cache-dir [home-dir "torrent-cache"])
 
 (defn disk-path [torrent]

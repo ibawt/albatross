@@ -42,14 +42,12 @@
 (defentity series
   (has-many episodes)
   (prepare #(-> % (underscoreize-keys) (join-aliases)))
-  (transform #(-> % (deunderscore-keys) (unjoin-aliases)))
-)
+  (transform #(-> % (deunderscore-keys) (unjoin-aliases))))
 
 (defentity episodes
   (belongs-to series {:fk :series-id})
   (prepare #(-> % (underscoreize-keys) (join-aliases)))
-  (transform #(-> % (deunderscore-keys) (unjoin-aliases)))
-  )
+  (transform #(-> % (deunderscore-keys) (unjoin-aliases))))
 
 (def ^:private base-url "http://thetvdb.com/api/")
 
@@ -76,7 +74,6 @@
 
 (def mirror-url
   (:mirrorpath (first mirrors)))
-
 
 (defn api-url [& api]
   (string/join "/" (concat [mirror-url "api"] api)))

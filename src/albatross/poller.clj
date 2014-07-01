@@ -28,10 +28,10 @@
   (filter (fn [[k v]] (= (:state v) state)) @db/db))
 
 (defn get-polling-torrents []
-  (get-torrents-for-state :seedbox))
+  (db/by-state :seedbox))
 
 (defn get-ready-torrents []
-  (get-torrents-for-state :ready-to-download))
+  (db/by-state :ready-to-download))
 
 (defn- poller []
   (go

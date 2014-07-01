@@ -31,6 +31,7 @@
       (.mkdir dir))))
 
 ;;; NEEDS TO BE NOT TERRIBLE
+;;; should handle partially downloaded better
 (defn download-file [filename torrent size]
   (info "Downloading " filename " of " (:name torrent))
   (let [file ^java.io.File (apply io/file (conj (get-download-dir torrent) filename))]
@@ -89,9 +90,12 @@
   (doseq [file (get-rar-files t)]
     (sh "unrar" "x" "-y"  (join "/" (filter #(> (count %) 0) (get file "path"))) :dir (join "/" (get-download-dir t)))))
 
+(def keep-downloading (atom true))
+
+
 (defn downloader-job []
   (thread
-    (while true
+    (while @keep-downloading
       (let [t-hash (<!! download-channel)
             t (get @db/db t-hash)]
         (when-not (= (:state t) :downloaded)

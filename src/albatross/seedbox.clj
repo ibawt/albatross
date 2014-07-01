@@ -62,6 +62,7 @@
 (defn list-torrents []
   (xmlrpc/call* endpoint-url "d.multicall" list-torrent-arguments :request request-params))
 
+;; TODO make this work
 (defn get-torrent-by-hash [hash]
   "doesn't work yet"
   (xmlrpc/call* endpoint-url "system.multicall" (map #(hash-map "methodName" % "param" hash) get-torrent-attributes) :request request-params))
