@@ -1,21 +1,28 @@
 <div id="home">
   <div>
     <h3>Shows:</h3>
-    <table class="table">
-      <thead class="table-head">
-        <tr>
-          <th>Name</th>
-          <th>First Aired</th>
-          <th>IMDB</th>
-        </tr>
-      </thead>
-      <tbody class="table-body">
-        <tr class="series-row">
-          <td class="series-name"></td>
-          <td class="series-first-aired"></td>
-          <td class="series-imdb"></td>
-        </tr>
-      </tbody>
-    </table>
+    <form action="select" method="POST">
+      <table class="table">
+        <thead class="table-head">
+          <tr>
+            <th>Select</th>
+            <th>Name</th>
+            <th>Banner</th>
+            <th>First Aired</th>
+            <th>IMDB</th>
+          </tr>
+        </thead>
+        <tbody class="table-body">
+          <tr class="series-row">
+            <td><input type="radio" class="focus" name="show" class="show-select" value=""></td>
+            <td class="series-name"></td>
+            <td><img src="" class="series-image" height="80"></td>
+            <td class="series-first-aired"></td>
+            <td><a href="#" target="_blank" class="imdb-link">IMDB</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <input type="submit" value="Next" class="button">
+    </form>
   </div>
 </div>

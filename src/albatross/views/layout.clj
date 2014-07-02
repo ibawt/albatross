@@ -13,17 +13,36 @@
 
 (defsnippet home
   "albatross/views/home.html" [:div#home]
-  [number-of-series]
+  [shows]
 
   [:tr.series-row]
-  (clone-for [i (range number-of-series)]
+  (clone-for [show shows]
              [:td.series-name]
-             (content "fdsfdsdd")))
+             (content (:series-id show))))
+
 
 (defsnippet add-show
   "albatross/views/add-show.html" [:div#home]
   []
 
   [:p]
-  (content "")
-  )
+  (content ""))
+
+
+(defsnippet search-show
+  "albatross/views/search-show.html" [:div#home]
+  [results]
+
+  [:tr.series-row]
+  (clone-for [show results]
+             [:td.series-name]
+             (content (:name show))
+
+             [:td.series-first-aired]
+             (content (:first-aired show))
+
+             [:img.series-image]
+             (set-attr :src (str "http://thetvdb.com/banners/" (:banner show)))
+
+             [:a.imdb-link]
+             (set-attr :href (str "http://www.imdb.com/title/" (:imdb-id show)))))

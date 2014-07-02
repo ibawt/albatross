@@ -15,7 +15,9 @@
             [albatross.views.layout :as layout]
             [taoensso.timbre :as timbre]
             [ring.server.standalone :as server]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [albatross.myshows :as myshows]
+            ))
 
 (timbre/refer-timbre)
 
@@ -61,10 +63,11 @@
   (java.io.ByteArrayInputStream. (torrent/torrent->bytes (db/hash->torrent (:hash params)))))
 
 (defroutes app-routes
-  (GET "/" [] (apply str (albatross.views.layout/layout (layout/home 1))))
+  (GET "/" [] (apply str (albatross.views.layout/layout (layout/home (myshows/index)))))
   (GET "/torrents/:id" {params :params} (torrent-by-hash params))
   (GET "/rss" request (provider/fetch-rss))
   (GET "/shows/add" [] (apply str (albatross.views.layout/layout (layout/add-show))))
+  (POST "/shows/search" {params :params} (apply str (albatross.views.layout/layout (layout/search-show (myshows/search params)))))
   (POST "/search" {params :params} (provider/search-show params))
   (POST "/send_torrent" {params :params} (send-torrent-from-post params))
   (route/resources "/")
@@ -72,8 +75,11 @@
 
 (alter-var-root #'*out* (constantly *out*))
 
+(def my-site-defaults
+  (dissoc site-defaults :security))
+
 (def app
-  (ring.middleware.stacktrace/wrap-stacktrace-log (wrap-defaults app-routes api-defaults)))
+  (wrap-defaults app-routes my-site-defaults))
 
 (defn standalone []
   (server/serve app {:stacktraces? false}))
