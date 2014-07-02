@@ -22,6 +22,8 @@
                  [liberator "0.11.0"]
                  [ring/ring-defaults "0.1.0"]]
 
+  :min-lein-version "2.3.0"
+
   :source-paths ["src"]
 
   :plugins [[lein-ring "0.8.10"]
