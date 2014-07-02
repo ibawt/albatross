@@ -28,13 +28,15 @@
   [:p]
   (content ""))
 
-
 (defsnippet search-show
   "albatross/views/search-show.html" [:div#home]
   [results]
 
   [:tr.series-row]
   (clone-for [show results]
+             [:input.show-select]
+             (set-attr :value (:tvdb-id show))
+
              [:td.series-name]
              (content (:name show))
 
@@ -42,7 +44,8 @@
              (content (:first-aired show))
 
              [:img.series-image]
-             (set-attr :src (str "http://thetvdb.com/banners/" (:banner show)))
+             (when-let [banner (:banner show)]
+               (set-attr :src (str "http://thetvdb.com/banners/_cache/" banner)))
 
              [:a.imdb-link]
              (set-attr :href (str "http://www.imdb.com/title/" (:imdb-id show)))))

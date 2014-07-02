@@ -19,11 +19,12 @@
 (defn search
   "searches tvdb for your show"
   [params]
-  (tvdb/search-series (str (:q params) "*")))
+  (filter #(some? (:first-aired %1)) (tvdb/search-series (str (:q params) "*"))))
 
 (defn select-show
   "selects the show"
-  [params])
+  [params]
+  )
 
 (defn create
   "creates teh show"
