@@ -78,15 +78,20 @@
 (defn api-url [& api]
   (string/join "/" (concat [mirror-url "api"] api)))
 
-(defn search-series [s]
-  (->
-   (http/get (api-url "GetSeries.php")
-             {:query-params {:seriesname s
-                             :language "en"}
-              :as :stream})
-   (:body)
-   (xml/parse)
-   (zip/xml-zip)))
+(defn parse-series [x]
+  {:tvdb-id (read-string (first (xml-> x :seriesid text)))
+   :language (first (xml-> x :language text))
+   :name (first (xml-> x :SeriesName text))
+   :aliases (first (xml-> x :AliasNames text))
+   :banner (first (xml-> x :banner text))
+   :overview (first (xml-> x :Overview text))
+   :first-aired (first (xml-> x :FirstAired text))
+   :network (first (xml-> x :Network text))
+   :imdb-id (first (xml-> x :IMDB_ID text))
+   :zap2it-id (first (xml-> x :zap2it_id text))})
+
+(defn parse-xml-series [coll]
+  (map zip/xml-zip coll))
 
 (defn get-current-server-time []
   (->
@@ -100,23 +105,33 @@
    (first)
    (read-string)))
 
+(defn filter-nil-vals [m]
+  (into {} (filter (comp not nil? val) m)))
+
+(defn parse-xml-response [resp]
+  (->
+   resp
+   (xml/parse)
+   (:content) ;skip over data tag
+   (parse-xml-series)
+   (#(map parse-series %))
+   (#(map unjoin-aliases %))
+   (#(map filter-nil-vals %))))
+
+
+(defn search-series [s]
+  (->
+   (http/get (api-url "GetSeries.php")
+             {:query-params {:seriesname s
+                             :language "en"}
+              :as :stream})
+   (:body)
+   (parse-xml-response)))
 
 (defn to-number [x]
   (if (= x "")
     nil
     (read-string x)))
-
-(defn parse-series [x]
-  {:tvdb-id (read-string (first (xml-> x :Series :seriesid text)))
-   :language (first (xml-> x :Series :language text))
-   :name (first (xml-> x :Series :SeriesName text))
-   :aliases (vec (xml-> x :Series :AliasNames text))
-   :banner (first (xml-> x :Series :banner text))
-   :overview (first (xml-> x :Series :Overview text))
-   :first-aired (first (xml-> x :Series :FirstAired text))
-   :network (first (xml-> x :Series :Network text))
-   :imdb-id (first (xml-> x :Series :IMDB_ID text))
-   :zap2it-id (first (xml-> x :Series :zap2it_id  text))})
 
 (defn parse-episode [x]
   {:tvdb-id (to-number (first (xml-> x :id text)))
