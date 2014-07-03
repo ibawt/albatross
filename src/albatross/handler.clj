@@ -16,8 +16,7 @@
             [taoensso.timbre :as timbre]
             [ring.server.standalone :as server]
             [clojure.java.io :as io]
-            [albatross.myshows :as myshows]
-            ))
+            [albatross.myshows :as myshows]))
 
 (timbre/refer-timbre)
 

@@ -42,8 +42,7 @@
           (>! channel (:hash t))))
       (doseq [[k t] (get-ready-torrents)]
         (info "Sending " (:name t) " to download queue")
-        (>! downloader/download-channel (:hash t)))
-      )))
+        (>! downloader/download-channel (:hash t))))))
 
 (defn start-poller []
   (reset! keep-polling true)

@@ -9,6 +9,7 @@
 
 (defdb db (sqlite3 {:db "albatross.db"}))
 
+;; TODO we use these method in more than one place
 (defn- sanitize-entities [t]
   (.replace ^String t "-" "_"))
 

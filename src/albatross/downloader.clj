@@ -92,7 +92,6 @@
 
 (def keep-downloading (atom true))
 
-
 (defn downloader-job []
   (thread
     (while @keep-downloading
