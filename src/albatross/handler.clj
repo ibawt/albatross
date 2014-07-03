@@ -68,7 +68,7 @@
   (GET "/rss" request (provider/fetch-rss))
   (GET "/shows/add" [] (apply str (albatross.views.layout/layout (layout/add-show))))
   (POST "/shows/search" {params :params} (apply str (albatross.views.layout/layout (layout/search-show (myshows/search params)))))
-  (POST "/shows/select" {params :params} (apply str (albatross.views.layout/layout (myshows/select params))))
+  (POST "/shows/select" {params :params} (apply str (albatross.views.layout/layout (myshows/select-show params))))
   (POST "/search" {params :params} (provider/search-show params))
   (POST "/send_torrent" {params :params} (send-torrent-from-post params))
   (route/resources "/")

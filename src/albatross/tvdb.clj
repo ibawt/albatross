@@ -148,13 +148,11 @@
    :season-id (to-number (first (xml-> x :seasonid text)))
    :filename (first (xml-> x :filename text))
    :thumb-width (to-number (first (xml-> x :thumb_width text)))
-   :thumb-height (to-number (first (xml-> x :thumb_height text)))
-   }
-  )
+   :thumb-height (to-number (first (xml-> x :thumb_height text)))})
 
-(defn fetch-show-data [show]
+(defn fetch-show-data [tvdb-id]
   (->
-   (http/get (api-url api-key "series" (:tvdb-id show) "all") {:as :stream})
+   (http/get (api-url api-key "series" tvdb-id "all") {:as :stream})
    (:body)
    (xml/parse)))
 

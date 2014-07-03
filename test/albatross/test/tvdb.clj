@@ -57,6 +57,4 @@
 
 (deftest xml-series-loading
   (testing "simple xml parsing"
-    (is (= simple-result (parse-xml-response (load-xml "series-simple.xml")) ))
-    )
-  )
+    (is (= simple-result (parse-xml-response (load-xml "series-simple.xml"))))))

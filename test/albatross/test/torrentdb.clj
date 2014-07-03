@@ -15,6 +15,5 @@
 
 (deftest filtering-by-state
   (testing "by-state"
-    (is (=  (list (vec (vals test-db))) (by-state :created)))
-;    (is (= '() (by-state :not-there)))
-    ))
+    (is (= (list (first test-db)) (by-state :created)))
+    (is (= '() (by-state :not-there)))))

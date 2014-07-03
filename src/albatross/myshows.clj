@@ -24,7 +24,8 @@
 (defn select-show
   "selects the show"
   [params]
-  )
+  (let [db-id (:show params)] (tvdb/fetch-show-data (:show params))
+       (insert myshows :series-id db-id)))
 
 (defn create
   "creates teh show"
