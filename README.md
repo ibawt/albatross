@@ -16,4 +16,6 @@ To start a web server for the application, run:
 
 ## License
 
+Albatross is licensed under the [MIT License](http://www.opensource.org/licenses/MIT)
+
 Copyright © 2014 Ian Quick
