@@ -1,10 +1,10 @@
-# albatross
+# Albatross
 
-FIXME
+[![Build Status](https://travis-ci.org/ibawt/albatross.svg?branch=front-end-start)](https://travis-ci.org/ibawt/albatross)
 
 ## Prerequisites
 
-You will need [Leiningen][1] 1.7.0 or above installed.
+You will need [Leiningen][1] 2.3.0 or above installed.
 
 [1]: https://github.com/technomancy/leiningen
 
@@ -16,4 +16,4 @@ To start a web server for the application, run:
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 Ian Quick
