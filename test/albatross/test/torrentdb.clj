@@ -24,5 +24,15 @@
   (testing "should find the torrent and and name and set the original link"
     (let [m (parse-magnet magnet-link)]
       (is (= "4015ab9713a0ff6e12167c5d71eba4c5975f8669" (:hash m)))
-      (is (= "Transcendence+%282014%29+WEB-DL+XviD-MAX&tr" (:name m)))
+      (is (=  (:name m) "Transcendence+%282014%29+WEB-DL+XviD-MAX"))
       (is (= '("udp://tracker.openbittorrent.com:80&" "udp://tracker.publicbt.com:80&" "udp://tracker.istole.it:6969&" "udp://open.demonii.com:1337") (:trackers m))))))
+
+ (def database-json
+   {"a" "a"
+    "b" "b"
+    "c" "c"
+    "state" "created"})
+
+(deftest loading-json
+  (testing "all the things"
+    (is (= {:a "a", :b "b", :c "c", :state :created} (convert-json database-json)))))

@@ -20,9 +20,17 @@
 (defn symbolize-params [params]
   (into {} (for [[k v] params] [(keyword k) v])))
 
+(defn convert-json
+  "symbolizes the params and state value"
+  [json]
+  (->
+   json
+   (symbolize-params)
+   (symbolize-state)))
+
 (defn load-db []
   (with-open [reader (io/reader (db-file))]
-    (into {} (for [[k v] (parse-stream reader)] [k (symbolize-state (symbolize-params v))]))))
+    (into {} (for [[k v] (parse-stream reader)] [k (convert-json v)]))))
 
 (defn load-or-create []
   (when (db-exists?)
@@ -54,8 +62,6 @@
   (info (str "fetching torrent for magnet:" (:name m)) )
   (try
     (->
-     ; does torcache use https??
-     ; we should use the other fallback in case it's not here
      (http/get (str "http://torcache.net/torrent/" (clojure.string/upper-case (:hash m)) ".torrent") {:as :byte-array})
      (:body))
     (catch Exception e
