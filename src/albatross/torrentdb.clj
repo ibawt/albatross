@@ -45,7 +45,9 @@
   "takes a string and returns a map of the hash and name"
   {:src magnet
    :hash (second (re-find #"urn:btih:([\w]{32,40})" magnet))
-   :name (second (re-find #"dn=(.*?)&" magnet))})
+   :name (second (re-find #"dn=(.*?)&" magnet))
+   :trackers (map ring.util.codec/url-decode  (drop 1 (clojure.string/split magnet #"tr=" )))
+   })
 
 (defn magnet->torrent [m]
   "gets a torrent file from the public torrent cache"
