@@ -1,32 +1,36 @@
 (ns albatross.myshows
-  (:require [albatross.tvdb :as tvdb]
-            [korma.core :refer :all]
-            [taoensso.timbre :as timbre]
-            ))
+	(:require [albatross.tvdb :as tvdb]
+						[korma.core :refer :all]
+						[taoensso.timbre :as timbre]
+						[albatross.views.myshows.core :as view]))
 
 (timbre/refer-timbre)
 
 (defentity myshows
-  (prepare tvdb/underscoreize-keys)
-  (transform tvdb/deunderscore-keys)
-  (has-one tvdb/series))
+	(prepare tvdb/underscoreize-keys)
+	(transform tvdb/deunderscore-keys)
+	(has-one tvdb/series))
 
 (defn index
-  "returns the collection of myshows"
-  []
-  (select myshows))
+	[]
+	(view/index (select myshows)))
 
-(defn search
-  "searches tvdb for your show"
-  [params]
-  (filter #(some? (:first-aired %1)) (tvdb/search-series (str (:q params) "*"))))
+(defn new
+	[]
+	(view/new))
 
-(defn select-show
-  "selects the show"
-  [params]
-  (let [db-id (:show params)] (tvdb/fetch-show-data (:show params))
-       (insert myshows :series-id db-id)))
+(defn choose
+	[params]
+	(view/choose (filter #(some? (:first-aired %1)) (tvdb/search-series (str (:q params) "*")))))
 
 (defn create
-  "creates teh show"
-  [params])
+	[params]
+	(let [db-id (:show params)] (tvdb/fetch-show-data (:show params))
+			 (insert myshows (values [{:series-id db-id}]))
+			 ))
+
+(defn change [params])
+
+(defn show [params])
+
+(defn destroy [params])
