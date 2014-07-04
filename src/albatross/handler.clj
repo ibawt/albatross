@@ -66,14 +66,15 @@
 
 (defroutes app-routes
 	;; HTML
-	(GET "/" [] (render-layout (myshows/index)))
 	(GET "/shows/new" [] (render-layout (myshows/new)))
 	(POST "/shows/choose" {params :params} (render-layout (myshows/choose params)))
-	(POST "/shows/" {params :params} (render-layout (myshows/create params)))
+	(POST "/shows/create" {params :params} (render-layout (myshows/create params)))
 	(GET "/shows/:id" {params :params} (render-layout (myshows/show params)))
 	(POST "/shows/:id/change" {params :params} (render-layout (myshows/change)))
 	(POST "/shows/:id/destroy" {params :params} (render-layout (myshows/destroy)))
 
+	(GET "/shows" [] (render-layout (myshows/index)))
+	(GET "/" [] (render-layout (myshows/index)))
 
 	;; API
 	(POST "/search" {params :params} (provider/search-show params))

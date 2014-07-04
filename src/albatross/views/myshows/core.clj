@@ -13,7 +13,6 @@
 						 [:td.series-name]
 						 (content (:series-id show))))
 
-
 (defsnippet new
 	"albatross/views/myshows/new.html" [:div#home]
 	[]

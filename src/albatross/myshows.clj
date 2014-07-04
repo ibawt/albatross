@@ -26,8 +26,7 @@
 (defn create
 	[params]
 	(let [db-id (:show params)] (tvdb/fetch-show-data (:show params))
-			 (insert myshows (values [{:series-id db-id}]))
-			 ))
+			 (insert myshows (values [{:series-id db-id}]))))
 
 (defn change [params])
 
