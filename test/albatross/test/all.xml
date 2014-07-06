@@ -1,0 +1,100 @@
+<Data>
+  <Series>
+    <id>85019</id>
+    <Actors>
+      |Ted Allen|Marcus Samuelsson|Maneet Chauhan|Chris Santos|Amanda Freitag|Aaron Sanchez|Scott Conant|Geoffrey Zakarian|Marc Murphy|Alex Guarnaschelli|
+    </Actors>
+    <Airs_DayOfWeek>Tuesday</Airs_DayOfWeek>
+    <Airs_Time>10:00 PM</Airs_Time>
+    <ContentRating>TV-G</ContentRating>
+    <FirstAired>2009-01-13</FirstAired>
+    <Genre>|Food|Game Show|Reality|</Genre>
+    <IMDB_ID>tt1353281</IMDB_ID>
+    <Language>en</Language>
+    <Network>Food Network</Network>
+    <NetworkID/>
+    <Overview>An Overview</Overview>
+    <Rating>9.1</Rating>
+    <RatingCount>8</RatingCount>
+    <Runtime>60</Runtime>
+    <SeriesID>76660</SeriesID>
+    <SeriesName>Chopped</SeriesName>
+    <Status>Continuing</Status>
+    <added>2009-02-08 15:41:12</added>
+    <addedBy>7270</addedBy>
+    <banner>graphical/85019-g2.jpg</banner>
+    <fanart>fanart/original/85019-1.jpg</fanart>
+    <lastupdated>1404277847</lastupdated>
+    <poster>posters/85019-1.jpg</poster>
+    <tms_wanted_old>1</tms_wanted_old>
+    <zap2it_id>EP01111785</zap2it_id>
+  </Series>
+  <Episode>
+    <id>4349271</id>
+    <Combined_episodenumber>1</Combined_episodenumber>
+    <Combined_season>0</Combined_season>
+    <DVD_chapter/>
+    <DVD_discid/>
+    <DVD_episodenumber/>
+    <DVD_season/>
+    <Director/>
+    <EpImgFlag>2</EpImgFlag>
+    <EpisodeName>Food Network Stars!</EpisodeName>
+    <EpisodeNumber>1</EpisodeNumber>
+    <FirstAired>2012-07-22</FirstAired>
+    <GuestStars/>
+    <IMDB_ID/>
+    <Language>en</Language>
+    <Overview>An Overview</Overview>
+    <ProductionCode>CQSP06</ProductionCode>
+    <Rating/>
+    <RatingCount>0</RatingCount>
+    <SeasonNumber>0</SeasonNumber>
+    <Writer/>
+    <absolute_number/>
+    <airsafter_season/>
+    <airsbefore_episode>8</airsbefore_episode>
+    <airsbefore_season>12</airsbefore_season>
+    <filename>episodes/85019/4349271.jpg</filename>
+    <lastupdated>1343510918</lastupdated>
+    <seasonid>40534</seasonid>
+    <seriesid>85019</seriesid>
+    <thumb_added/>
+    <thumb_height>225</thumb_height>
+    <thumb_width>400</thumb_width>
+  </Episode>
+  <Episode>
+    <id>4349267</id>
+    <Combined_episodenumber>2</Combined_episodenumber>
+    <Combined_season>0</Combined_season>
+    <DVD_chapter/>
+    <DVD_discid/>
+    <DVD_episodenumber/>
+    <DVD_season/>
+    <Director/>
+    <EpImgFlag>2</EpImgFlag>
+    <EpisodeName>Grill Masters: Part One</EpisodeName>
+    <EpisodeNumber>2</EpisodeNumber>
+    <FirstAired>2012-07-22</FirstAired>
+    <GuestStars/>
+    <IMDB_ID/>
+    <Language>en</Language>
+    <Overview>An Overview</Overview>
+    <ProductionCode>CQSP01</ProductionCode>
+    <Rating/>
+    <RatingCount>0</RatingCount>
+    <SeasonNumber>0</SeasonNumber>
+    <Writer/>
+    <absolute_number/>
+    <airsafter_season/>
+    <airsbefore_episode>8</airsbefore_episode>
+    <airsbefore_season>12</airsbefore_season>
+    <filename>episodes/85019/4349267.jpg</filename>
+    <lastupdated>1343573259</lastupdated>
+    <seasonid>40534</seasonid>
+    <seriesid>85019</seriesid>
+    <thumb_added/>
+    <thumb_height>225</thumb_height>
+    <thumb_width>400</thumb_width>
+  </Episode>
+</Data>

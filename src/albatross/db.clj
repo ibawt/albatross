@@ -32,7 +32,7 @@
 (def create-episodes
   "creates the table to contain tvdb episode information"
   (jdbc/create-table-ddl :episodes
-                         [:id "integer" :serial :primary :key]
+                         [:id "integer" :primary :key]
                          [:tvdb-id "integer" :unique]
                          [:name "varchar(255)"]
                          [:number "integer"]
