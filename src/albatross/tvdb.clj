@@ -14,9 +14,6 @@
 
 (declare series episodes)
 
-(defn filter-episodes [x]
-  (filter #(= (:tag %) :Episode) (:content x)))
-
 (defn underscoreize [k]
   (keyword (clojure.string/replace (name k) "-" "_")))
 
@@ -39,6 +36,7 @@
     (assoc m :aliases (clojure.string/split (:aliases m) #"\|"))
     m))
 
+
 (defentity series
   (has-many episodes)
   (prepare #(-> % (underscoreize-keys) (join-aliases)))
@@ -56,7 +54,7 @@
 
 (def mirrors-url (str base-url api-key "/mirrors.xml"))
 
-(defn get-xml [url]
+(defn- get-xml [url]
   (->
    (http/get url {:as :stream})
    (:body)
@@ -78,15 +76,26 @@
 (defn api-url [& api]
   (string/join "/" (concat [mirror-url "api"] api)))
 
-(defn search-series [s]
-  (->
-   (http/get (api-url "GetSeries.php")
-             {:query-params {:seriesname s
-                             :language "en"}
-              :as :stream})
-   (:body)
-   (xml/parse)
-   (zip/xml-zip)))
+(defn series-id-or-id [x]
+  (let [id (first (xml-> x :seriesid text))]
+    (if id
+      (read-string id)
+      (read-string (first (xml-> x :id text))))))
+
+(defn parse-series [x]
+  {:tvdb-id (series-id-or-id x)
+   :language (first (xml-> x :language text))
+   :name (first (xml-> x :SeriesName text))
+   :aliases (first (xml-> x :AliasNames text))
+   :banner (first (xml-> x :banner text))
+   :overview (first (xml-> x :Overview text))
+   :first-aired (first (xml-> x :FirstAired text))
+   :network (first (xml-> x :Network text))
+   :imdb-id (first (xml-> x :IMDB_ID text))
+   :zap2it-id (first (xml-> x :zap2it_id text))})
+
+(defn parse-xml-series [coll]
+  (map zip/xml-zip coll))
 
 (defn get-current-server-time []
   (->
@@ -100,25 +109,31 @@
    (first)
    (read-string)))
 
+(defn filter-nil-vals [m]
+  (into {} (filter (comp some? val) m)))
+
+(defn- parse-search-series-response [x]
+  (map (comp filter-nil-vals unjoin-aliases parse-series zip/xml-zip) x))
+
+(defn search-series [s]
+  (->
+   (http/get (api-url "GetSeries.php")
+             {:query-params {:seriesname s
+                             :language "en"}
+              :debug true
+              :as :stream})
+   (:body)
+   (xml/parse)
+   (:content)
+   (parse-search-series-response)))
 
 (defn to-number [x]
   (if (= x "")
     nil
     (read-string x)))
 
-(defn parse-series [x]
-  {:tvdb-id (read-string (first (xml-> x :Series :seriesid text)))
-   :language (first (xml-> x :Series :language text))
-   :name (first (xml-> x :Series :SeriesName text))
-   :aliases (vec (xml-> x :Series :AliasNames text))
-   :banner (first (xml-> x :Series :banner text))
-   :overview (first (xml-> x :Series :Overview text))
-   :first-aired (first (xml-> x :Series :FirstAired text))
-   :network (first (xml-> x :Series :Network text))
-   :imdb-id (first (xml-> x :Series :IMDB_ID text))
-   :zap2it-id (first (xml-> x :Series :zap2it_id  text))})
-
-(defn parse-episode [x]
+(defn parse-episode
+  [x]
   {:tvdb-id (to-number (first (xml-> x :id text)))
    :name (first (xml-> x :EpisodeName text))
    :number (to-number (first (xml-> x :EpisodeNumber text)))
@@ -133,17 +148,44 @@
    :season-id (to-number (first (xml-> x :seasonid text)))
    :filename (first (xml-> x :filename text))
    :thumb-width (to-number (first (xml-> x :thumb_width text)))
-   :thumb-height (to-number (first (xml-> x :thumb_height text)))
-   }
+   :thumb-height (to-number (first (xml-> x :thumb_height text)))})
+
+
+(defn filter-for-tag [tag coll]
+  (filter #(= (:tag %1) tag) coll))
+
+(defn fetch-show-data [tvdb-id]
+  (->
+   (http/get (api-url api-key "series" tvdb-id "all") {:as :stream})
+   (:body)
+   (xml/parse)
+   (:content)))
+
+(defn parse-episodes [x]
+  (map (comp filter-nil-vals parse-episode zip/xml-zip) x))
+
+(defn series-by-name [name]
+  (select series (where (like :name (str name "%")))))
+
+(defn tvdb-id->series [tvdb-id]
+  (first (select series (where (= :tvdb_id tvdb-id))))
   )
 
-(defn fetch-show-data [show]
-  (->
-   (http/get (api-url api-key "series" (:tvdb-id show) "all") {:as :stream})
-   (:body)
-   (xml/parse)))
+(defn episodes-for-series [series]
+  (select episodes (where (= :series_id (:tvdb-id series)))))
+
+(defn save-series [s]
+  (first (vals (insert series (values s)))))
+
+(defn save-episodes [coll]
+  (doall (map #(insert episodes (values %1)) coll)))
 
 (defn save-to-db [show]
-  (insert series show))
+  (insert series (values show)))
+
+(defn populate-series [tvdb-id]
+  (let [parsed-xml (fetch-show-data tvdb-id)]
+    (save-episodes (parse-episodes (filter-for-tag :Episode parsed-xml)))
+    (save-series (parse-search-series-response (filter-for-tag :Series parsed-xml)))))
 
 (def ^:dynamic *last-server-time* (atom (get-current-server-time)))

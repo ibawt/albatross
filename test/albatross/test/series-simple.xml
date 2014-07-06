@@ -1,0 +1,24 @@
+<Data>
+  <Series>
+    <seriesid>77526</seriesid>
+    <language>en</language>
+    <SeriesName>Star Trek</SeriesName>
+    <AliasNames>Star Trek: The Original Series|Star Trek: TOS</AliasNames>
+    <banner>graphical/77526-g7.jpg</banner>
+    <Overview>An Overview</Overview>
+    <FirstAired>1966-09-08</FirstAired>
+    <Network>NBC</Network>
+    <IMDB_ID>tt0060028</IMDB_ID>
+    <zap2it_id>SH003985</zap2it_id>
+    <id>77526</id>
+  </Series>
+  <Series>
+    <seriesid>126391</seriesid>
+    <language>en</language>
+    <SeriesName>Star Trek: Odyssey</SeriesName>
+    <banner>text/126391.jpg</banner>
+    <Overview>Another overview</Overview>
+    <FirstAired>2007-09-01</FirstAired>
+    <id>126391</id>
+  </Series>
+</Data>

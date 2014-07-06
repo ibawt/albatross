@@ -2,7 +2,8 @@
   (:require [cheshire.core :refer :all]
             [clojure.java.io :as io]
             [taoensso.timbre :as timbre]
-            [clj-http.client :as http]))
+            [clj-http.client :as http]
+            [ring.util.codec :refer [url-decode]]))
 
 (timbre/refer-timbre)
 
@@ -20,9 +21,17 @@
 (defn symbolize-params [params]
   (into {} (for [[k v] params] [(keyword k) v])))
 
+(defn convert-json
+  "symbolizes the params and state value"
+  [json]
+  (->
+   json
+   (symbolize-params)
+   (symbolize-state)))
+
 (defn load-db []
   (with-open [reader (io/reader (db-file))]
-    (into {} (for [[k v] (parse-stream reader)] [k (symbolize-state (symbolize-params v))]))))
+    (into {} (for [[k v] (parse-stream reader)] [k (convert-json v)]))))
 
 (defn load-or-create []
   (when (db-exists?)
@@ -45,15 +54,15 @@
   "takes a string and returns a map of the hash and name"
   {:src magnet
    :hash (second (re-find #"urn:btih:([\w]{32,40})" magnet))
-   :name (second (re-find #"dn=(.*?)&" magnet))})
+   :name (url-decode (second (re-find #"dn=(.*?)&" magnet)))
+   :trackers (map url-decode (drop 1 (clojure.string/split magnet #"tr=" )))
+   })
 
 (defn magnet->torrent [m]
   "gets a torrent file from the public torrent cache"
   (info (str "fetching torrent for magnet:" (:name m)) )
   (try
     (->
-     ; does torcache use https??
-     ; we should use the other fallback in case it's not here
      (http/get (str "http://torcache.net/torrent/" (clojure.string/upper-case (:hash m)) ".torrent") {:as :byte-array})
      (:body))
     (catch Exception e

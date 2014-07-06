@@ -47,12 +47,10 @@
    (#(map db/parse-magnet %1))
    (#(map fetch-magnet %1))
    (#(remove nil? %1))
-   (#(map make-magnet-link %1))
-   ))
+   (#(map make-magnet-link %1))))
 
 (def config
   {:search-show search-piratebay
    :name "The Pirate Bay"
    :backlog? false
-   :magnet true
-   })
+   :magnet true})

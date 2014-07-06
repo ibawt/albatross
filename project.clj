@@ -22,6 +22,8 @@
                  [liberator "0.11.0"]
                  [ring/ring-defaults "0.1.0"]]
 
+  :min-lein-version "2.3.0"
+
   :source-paths ["src"]
 
   :plugins [[lein-ring "0.8.10"]
@@ -41,5 +43,6 @@
 
                     :dependencies [[javax.servlet/servlet-api "2.5"]
                                    [ring-mock "0.1.5"]
+                                   [clj-http-fake "0.7.8"]
                                    [ring-server "0.3.1"]
                                    [pjstadig/humane-test-output "0.6.0"]]}})

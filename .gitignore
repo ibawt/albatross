@@ -11,3 +11,5 @@ pom.xml.asc
 /.nrepl-port
 /.repl/
 /albatross.db
+.DS_Store
+*~
