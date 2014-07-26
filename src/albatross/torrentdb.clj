@@ -16,7 +16,7 @@
   (.exists (db-file)))
 
 (defn symbolize-state [d]
-  (assoc d :state (keyword (:state d))))
+ (update-in d [:state] keyword))
 
 (defn symbolize-params [params]
   (into {} (for [[k v] params] [(keyword k) v])))
@@ -62,9 +62,8 @@
   "gets a torrent file from the public torrent cache"
   (info (str "fetching torrent for magnet:" (:name m)) )
   (try
-    (->
-     (http/get (str "http://torcache.net/torrent/" (clojure.string/upper-case (:hash m)) ".torrent") {:as :byte-array})
-     (:body))
+    (:body
+     (http/get (str "http://torcache.net/torrent/" (clojure.string/upper-case (:hash m)) ".torrent") {:as :byte-array}))
     (catch Exception e
       (info "no torrent found!")
       nil)))

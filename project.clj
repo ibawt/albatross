@@ -15,11 +15,11 @@
                  [org.clojure/core.async "0.1.303.0-886421-alpha"]
                  [com.taoensso/timbre "3.2.1"]
                  [org.clojure/data.zip "0.1.1"]
-                 [org.clojure/java.jdbc "0.3.3"]
+                 [org.clojure/java.jdbc "0.3.4"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [korma "0.3.2"]
                  [clj-http "0.9.2"]
-                 [liberator "0.11.0"]
+                 [liberator "0.12.0"]
                  [ring/ring-defaults "0.1.0"]]
 
   :min-lein-version "2.3.0"

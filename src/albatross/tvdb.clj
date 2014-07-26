@@ -128,9 +128,10 @@
    (parse-search-series-response)))
 
 (defn to-number [x]
-  (if (= x "")
-    nil
-    (read-string x)))
+  (when-not (= x "") (read-string x)))
+  ;; (if (= x "")
+  ;;   nil
+  ;;   (read-string x)))
 
 (defn parse-episode
   [x]

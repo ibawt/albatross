@@ -34,9 +34,7 @@
     (map #(insert myepisodes (values [{:myshow-id (:id myshow)
                                        :episode-id (:tvdb-id %1)
                                        :state "not-present"
-                                       } ])) epis)
-    )
-  )
+                                       } ])) epis)))
 
 (defn index
   []

@@ -47,8 +47,8 @@
   (create-dir t)
   ; clean up
   (doseq [file (:files t)]
-    (let [path (filter #(> (count %1) 0) (get file "path"))]
-      (when (> (count path) 1)
+    (let [path (filter #(pos? (count %1)) (get file "path"))]
+      (when (pos? (count path))
         (let [dir ^java.io.File (apply io/file
                          (concat (get-download-dir t)
                                  (butlast path)))]
@@ -75,7 +75,7 @@
 
 (defn fetch-torrent [t]
   (try
-    (if (not (nil? (:files t)))
+    (if-not (nil? (:files t))
       (fetch-multi t)
       (fetch-single t))
     true
@@ -88,7 +88,7 @@
 
 (defn unpack-torrent [t]
   (doseq [file (get-rar-files t)]
-    (sh "unrar" "x" "-y"  (join "/" (filter #(> (count %) 0) (get file "path"))) :dir (join "/" (get-download-dir t)))))
+    (sh "unrar" "x" "-y"  (join "/" (filter #(pos? (count %)) (get file "path"))) :dir (join "/" (get-download-dir t)))))
 
 (def keep-downloading (atom true))
 

@@ -20,7 +20,7 @@
   (str "http://torcache.net/torrent/" h ".torrent"))
 
 (defn filter-config [type]
-  (keep identity (map #(type %1) (vals @providers))))
+  (keep identity (map type (vals @providers))))
 
 ; TODO complete
 (defn fetch-rss []

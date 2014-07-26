@@ -62,7 +62,7 @@
   (java.io.ByteArrayInputStream. (torrent/torrent->bytes (db/hash->torrent (:hash params)))))
 
 (defn render-layout [inner]
-  (apply str (layout/layout inner)))
+  (clojure.string/join (layout/layout inner)))
 
 (defroutes app-routes
   ;; HTML
