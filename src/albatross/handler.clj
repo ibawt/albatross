@@ -16,7 +16,8 @@
             [taoensso.timbre :as timbre]
             [ring.server.standalone :as server]
             [clojure.java.io :as io]
-            [albatross.myshows :as myshows]))
+            [albatross.myshows :as myshows]
+            [clojure.string :as str]))
 
 (timbre/refer-timbre)
 
@@ -30,6 +31,8 @@
           (-> level name clojure.string/upper-case) ns (or message "")
           (or (timbre/stacktrace throwable "\n" (when nofonts? {})) "")))
 
+(timbre/set-config! [:appenders :spit :enabled?] true)
+(timbre/set-config! [:shared-appender-config :spit-filename] "albatross.log")
 (timbre/merge-config! {:fmt-output-fn logger})
 
 (def home-dir
@@ -64,10 +67,14 @@
 (defn render-layout [inner]
   (clojure.string/join (layout/layout inner)))
 
+(defn render-partial [inner]
+  (str/join (net.cgrand.enlive-html/emit* inner)))
+
 (defroutes app-routes
   ;; HTML
   (GET "/shows/new" [] (render-layout (myshows/new)))
-  (POST "/shows/choose" {params :params} (render-layout (myshows/choose params)))
+  (POST "/shows/choose" {params :params} (render-partial (myshows/choose params)
+                                          ))
   (POST "/shows/create" {params :params} (render-layout (myshows/create params)))
   (GET "/shows/:id" [id] (render-layout (myshows/show id)))
   (POST "/shows/:id/change" {params :params} (render-layout (myshows/change)))

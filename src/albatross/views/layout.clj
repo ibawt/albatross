@@ -3,7 +3,6 @@
             [net.cgrand.reload :refer :all]
             ))
 
-
 (net.cgrand.reload/auto-reload *ns*)
 (deftemplate layout
   "albatross/views/layout.html"

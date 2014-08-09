@@ -27,7 +27,7 @@
   :source-paths ["src"]
 
   :plugins [[lein-ring "0.8.10"]
-            [cider/cider-nrepl "0.7.0-SNAPSHOT"]
+            [cider/cider-nrepl "0.8.0-SNAPSHOT"]
             [lein-environ "0.5.0"]]
 
   :ring {:handler albatross.handler/app

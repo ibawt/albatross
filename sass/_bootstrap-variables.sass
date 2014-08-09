@@ -11,6 +11,11 @@
 //== Colors
 //
 //## Gray and brand colors for use across Bootstrap.
+$surf-froth: #e8ebcc
+$ocean-martini: #abcccf
+$sea-smoothie: #8cbec2
+$sea-olive: #295c5e
+$cream-of-the-sea: #74b0b4
 
 // $gray-darker:            lighten(#000, 13.5%) // #222
 // $gray-dark:              lighten(#000, 20%)   // #333
@@ -18,18 +23,18 @@
 // $gray-light:             lighten(#000, 46.7%) // #777
 // $gray-lighter:           lighten(#000, 93.5%) // #eee
 
-// $brand-primary:         #428bca
-// $brand-success:         #5cb85c
-// $brand-info:            #5bc0de
-// $brand-warning:         #f0ad4e
-// $brand-danger:          #d9534f
+$brand-primary:         #74b0b4
+$brand-success:         #abcccf
+$brand-info:            #8cbec2
+$brand-warning:         #8cbec2
+$brand-danger:          #295c5e
 
 //== Scaffolding
 //
 //## Settings for some of the most global styles.
 
 //* Background color for `<body>`.
-// $body-bg:               #fff
+$body-bg:               #fff
 //* Global text color on `<body>`.
 // $text-color:            $gray-dark
 
@@ -329,27 +334,27 @@
 // Basics of a navbar
 // $navbar-height:                    50px
 // $navbar-margin-bottom:             $line-height-computed
-// $navbar-border-radius:             $border-radius-base
+$navbar-border-radius:             0
 // $navbar-padding-horizontal:        floor(($grid-gutter-width / 2))
 // $navbar-padding-vertical:          (($navbar-height - $line-height-computed) / 2)
 // $navbar-collapse-max-height:       340px
 
-// $navbar-default-color:             #777
-// $navbar-default-bg:                #f8f8f8
-// $navbar-default-border:            darken($navbar-default-bg, 6.5%)
+$navbar-default-color:             #777
+$navbar-default-bg:                $sea-olive
+$navbar-default-border:            darken($navbar-default-bg, 6.5%)
 
 // Navbar links
-// $navbar-default-link-color:                #777
-// $navbar-default-link-hover-color:          #333
+$navbar-default-link-color:                #ddd
+$navbar-default-link-hover-color:          $ocean-martini
 // $navbar-default-link-hover-bg:             transparent
-// $navbar-default-link-active-color:         #555
+$navbar-default-link-active-color:         lighten($ocean-martini, 10%)
 // $navbar-default-link-active-bg:            darken($navbar-default-bg, 6.5%)
 // $navbar-default-link-disabled-color:       #ccc
 // $navbar-default-link-disabled-bg:          transparent
 
 // Navbar brand label
-// $navbar-default-brand-color:               $navbar-default-link-color
-// $navbar-default-brand-hover-color:         darken($navbar-default-brand-color, 10%)
+$navbar-default-brand-color:               $navbar-default-link-color
+$navbar-default-brand-hover-color:         darken($navbar-default-brand-color, 10%)
 // $navbar-default-brand-hover-bg:            transparent
 
 // Navbar toggle

@@ -17,6 +17,7 @@
   "albatross/views/myshows/index.html" [:div#home]
   [shows]
 
+
   [:tr.series-row]
   (clone-for [show shows]
              [:td.series-name :a]
@@ -24,6 +25,7 @@
 
              [:td.series-name :img]
              (set-attr :src (show-banner show))))
+
 
 (defsnippet new
   "albatross/views/myshows/new.html" [:div#home]
@@ -33,7 +35,7 @@
   (content ""))
 
 (defsnippet choose
-  "albatross/views/myshows/choose.html" [:div#home]
+  "albatross/views/myshows/choose.html" [:div#choose]
   [results]
 
   [:tr.series-row]
@@ -41,15 +43,21 @@
              [:input.show-select]
              (set-attr :value (:tvdb-id show))
 
-             [:td.series-name]
-             (content (:name show))
-
              [:td.series-first-aired]
              (content (:first-aired show))
 
-             [:img.series-image]
+             [:img.series-banner-image]
              (when-let [banner (:banner show)]
-               (set-attr :src (str "http://thetvdb.com/banners/_cache/" banner)))
+               (set-attr :src (show-banner show)))
+
+             [:div.series-banner-image-box]
+             (set-attr :data-href (:tvdb-id show))
+
+             [:td.series-network]
+             (content (:network show))
+
+             [:p.series-alt-name]
+             (content (:name show))
 
              [:a.imdb-link]
              (set-attr :href (str "http://www.imdb.com/title/" (:imdb-id show)))))
