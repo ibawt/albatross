@@ -1,7 +1,8 @@
 (ns albatross.db
   (:require [clojure.java.jdbc :as jdbc]
             [korma.db :refer :all]
-            [korma.core :refer :all]))
+            [korma.core :refer :all]
+            [com.stuartsierra.component :as component]))
 
 (def dbspec {:classname "org.sqlite.JDBC"
              :subprotocol "sqlite"

@@ -4,50 +4,55 @@
             [clj-http.client :as http]
             [clojure.core.async :refer [go <! >! chan timeout alts! unique]]
             [albatross.seedbox :as seedbox]
-            [albatross.downloader :as downloader]))
+            [albatross.downloader :as downloader]
+            [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
 
-(def ^:private keep-polling (atom true))
-
-(def num-channels 10)
-
-(def channel (unique (chan num-channels)))
-
-(defn poll-job []
+(defn- poll-job [this]
   (go
-    (while @keep-polling
-      (let [t-hash (<! channel)
-            t (get @db/db t-hash)]
-        (when (seedbox/is-complete? (get @db/db t-hash))
+    (while @(:running this)
+      (let [t-hash (<! (:channel this))
+            t (get (db/get-torrent (:torrent-db this) t-hash))]
+        (when (seedbox/is-complete? (:seedbox this) t)
           (info "PollJob " (:name t) " is complete!")
-          (db/update-torrent (assoc (get @db/db t-hash) :state :ready-to-download))
-          (>! downloader/download-channel t-hash))))))
+          (db/update-torrent (assoc t :state :ready-to-download))
+          (>! (get-in this [:downloader :channel]) t-hash))))))
 
-(defn get-torrents-for-state [state]
-  (filter (fn [[k v]] (= (:state v) state)) @db/db))
+(defn- get-polling-torrents [this]
+  (db/by-state (:torrent-db this) :seedbox))
 
-(defn get-polling-torrents []
-  (db/by-state :seedbox))
+(defn- get-ready-torrents [this]
+  (db/by-state (:torrent-db this) :ready-to-download))
 
-(defn get-ready-torrents []
-  (db/by-state :ready-to-download))
-
-(defn- poller []
+(defn- poller [this]
   (go
-    (while @keep-polling
+    (while @(:running this)
       (<! (timeout 5000))
-      (let [torrents (get-polling-torrents)]
+      (let [torrents (get-polling-torrents this)]
         (doseq [[k t] torrents]
-          (>! channel (:hash t))))
-      (doseq [[k t] (get-ready-torrents)]
+          (>! (:channel this) (:hash t))))
+      (doseq [[k t] (get-ready-torrents this)]
         (info "Sending " (:name t) " to download queue")
-        (>! downloader/download-channel (:hash t))))))
+        (>! (:channel (:downloader this)) (:hash t))
+        ))))
 
-(defn start-poller []
-  (reset! keep-polling true)
-  (poller)
-  (poll-job))
+(defrecord Poller [downloader torrent-db seedbox running channel]
+  component/Lifecycle
+  (start [this]
+    (info "Starting Poller")
+    (when-not running
+      (reset! running true)
+      (poller this)
+      (poll-job this))
+    this)
 
-(defn stop-poller []
-  (reset! keep-polling false))
+  (stop [this]
+    (info "Stopping Poller")
+    (when running
+      (reset! running false))
+    this))
+
+(defn create-poller []
+  (map->Poller {:running (atom false)
+                :channel (unique (chan 10))}))

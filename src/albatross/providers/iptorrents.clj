@@ -5,46 +5,52 @@
             [environ.core :refer :all]
             [albatross.providers.utils :as utils]))
 
-(def ^:private cookie-store (clj-http.cookies/cookie-store))
-(def ^:private torrents-url "https://iptorrents.com/torrents")
-(def ^:private torrent-pass (env :iptorrents-torrent-pass))
-(def ^:private torrent-credentials {:username (env :iptorrents-username)
-                                    :password (env :iptorrents-password)})
-(def ^:private login
-  (http/post torrents-url {:form-params torrent-credentials
-                          :cookie-store cookie-store}))
-(def ^:private rss-url
-  (env :iptorrents-rss-url))
+(timbre/refer-timbre)
+;; TODO make this part of the config
+(def cookie-store (clj-http.cookies/cookie-store))
 
-(defn- parse-search-results [html]
+(def ^:private torrents-url "https://iptorrents.com/torrents")
+
+(defn login [config]
+  (http/post torrents-url {:form-params {:username (:username config) :password (:password config)}
+                           :cookie-store cookie-store}))
+
+(defn parse-search-results [html]
   (->
    (html :body)
    (html/html-snippet)
    (#(html/select % [[:table.torrents] [:a]]))))
 
-(defn- search-results [params]
+(defn search-results [config params]
   (http/get torrents-url
-                {:query-params {:q (utils/make-search-query params)}
-                 :cookie-store cookie-store}))
+            {:query-params {:q (utils/make-search-query params)}
+             :cookie-store cookie-store}))
 
-(defn- get-links [tags]
+(defn get-links [tags]
   (filter #(.contains ^String % "download")
           (map #(get-in % [:attrs :href]) tags)))
 
+(defn add-torrent-pass [links tp]
+  (info "ADDING A TORRENT PASS" tp)
+  (map #(str "https://iptorrents.com"
+             (.replaceAll % " " "%20")
+             "?torrent_pass="
+             tp) links))
 
-(defn- add-torrent-pass [links]
-  (map #(str "https://iptorrents.com" (.replaceAll ^String % " " "%20") "?torrent_pass=" torrent-pass) links))
-
-(defn search-show [params]
-  (-> (search-results params)
+(defn search-show [config params]
+  (-> (search-results config params)
       (parse-search-results)
       (get-links)
-      (add-torrent-pass)))
+      (add-torrent-pass (:pass config))))
 
-(def config
+(def static-config
   {:search-show search-show ; main search function
-   :rss-url rss-url         ; rss
    :name "IPTorrents"       ; humanize
-   :backlog? true          ; rss
+   :backlog? true           ; rss
    :magnet false            ; has magnetlinks
    })
+
+(defn create [{iptorrents :iptorrents}]
+  (let [config (merge static-config iptorrents {:cooke-store (clj-http.cookies/cookie-store)})]
+    (login config)
+    config))
