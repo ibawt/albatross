@@ -22,7 +22,7 @@
 ; TODO complete
 (defn fetch-rss [this]
   "returns a list of rss-urls"
-  (:body (http/get (first (filter-config this :rss-url)))))
+  (:body (http/get (:rss-url (first (filter-config this :rss-url))))))
 
 
 ;;; TODO clean this up

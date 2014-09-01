@@ -1,88 +1,97 @@
 (ns albatross.torrentdb
-  (:require [cheshire.core :refer :all]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [taoensso.timbre :as timbre]
             [clj-http.client :as http]
             [ring.util.codec :refer [url-decode]]
-            [com.stuartsierra.component :as component]
-            [bencode.metainfo.reader :as bencode]))
+            [bencode.metainfo.reader :as bencode]
+            [korma.core :refer :all]
+            [albatross.db :as db]
+            [cheshire.core :refer [parse-string generate-string]]
+            [clojure.walk :refer [keywordize-keys stringify-keys]]))
 
 (timbre/refer-timbre)
 
-
-(defn save-db! [this]
-  (io! (with-open [writer (io/writer (:db-file this))]
-         (.write writer (generate-string @(:db this))))))
-
-(defn- torrent-disk-path [this torrent]
-  (conj (:cache-dir this) (str (:name torrent) ".torrent")))
-
-(defn- db-exists? [this]
-  (.exists (:db-file this)))
-
-(defn bytes->torrent [bytes]
-  (let [t (bencode/parse-metainfo bytes)]
-    {:hash (bencode/torrent-info-hash-str t)
-     :name (bencode/torrent-name t)
-     :state :created
-     :files (bencode/torrent-files t)
-     :size (bencode/torrent-size t)}))
-
-(defn update-torrent [this torrent]
-  (swap! (:db this) assoc (:hash torrent) torrent)
-  (save-db! this))
-
-(defn save-to-disk [this torrent ^bytes bytes]
-  (debug "save-to-disk " torrent)
-  (io!
-   (with-open [f (io/output-stream (apply io/file (torrent-disk-path this torrent)))]
-     (.write f bytes))))
-
-(defn find-or-create-by-bytes [this bytes]
-  (let [t (bytes->torrent bytes)]
-    (when-not (contains? @(:db this) (:hash t))
-      (save-to-disk this t bytes)
-      (update-torrent this t))
-    t))
-
-(defn to-byte-array [file]
-  (let [out (java.io.ByteArrayOutputStream.)]
-    (with-open [in (io/input-stream file)]
-      (io/copy in out))
-    (.toByteArray out)))
-
-(defn torrent->bytes [this torrent]
-  (io!
-   (to-byte-array (apply io/file (torrent-disk-path this torrent)))))
-
-(defn hash-equals? [a b]
-  (.equalsIgnoreCase ^String (:hash a) ^String (:hash b)))
-
-(defn symbolize-state [d]
+(defn- symbolize-state [d]
  (update-in d [:state] keyword))
 
-(defn symbolize-params [params]
-  (into {} (for [[k v] params] [(keyword k) v])))
+(defn- stringify-state [d]
+  (update-in d [:state] name))
 
-(defn convert-json
-  "symbolizes the params and state value"
-  [json]
+(defn- last-id [res]
+  ((keyword "last-insert-rowid()") res))
+
+(defn- prepare-torrent
+  [t]
   (->
-   json
-   (symbolize-params)
-   (symbolize-state)))
+   t
+   (assoc :files (generate-string (:files t)))
+   (stringify-state)
+   (db/underscore-keys)))
 
-(defn load-db [this]
-  (with-open [reader (io/reader (:db-file this))]
-    (into {} (for [[k v] (parse-stream reader)] [k (convert-json v)]))))
+(defn parse-date [d]
+  (if d
+    (java.util.Date. d)
+    d))
 
-(defn load-or-create [this]
-  (when (db-exists? this)
-    (info "Loading database from disk!")
-    (reset! (:db this) (load-db this))))
+(defn- transform-torrent
+  [t]
+  (->
+   t
+   (assoc :files (keywordize-keys (parse-string (:files t))))
+   (symbolize-state)
+   (db/deunderscore-keys)
+   (update-in [:created-at] parse-date)
+   (update-in [:updated-at] parse-date)))
 
-(defn hash->torrent [this hash]
-  (get (:db this) hash))
+(defentity torrents
+  (prepare prepare-torrent)
+  (transform transform-torrent))
+
+(defn- bytes->torrent [bytes]
+  (let [t (bencode/parse-metainfo bytes)]
+    {:info-hash (clojure.string/lower-case (bencode/torrent-info-hash-str t))
+     :name (bencode/torrent-name t)
+     :state :created
+     :files (keywordize-keys (bencode/torrent-files t))
+     :size (bencode/torrent-size t)
+     :bytes bytes
+     :created-at (java.util.Date.)
+     :updated-at (java.util.Date.)}))
+
+(defn find-by-hash [hash]
+  "Finds a torrent in the database by info hash"
+  (first (select torrents
+                 (where {:info_hash (clojure.string/lower-case hash)})
+                 (limit 1))))
+
+(defn update-torrent! [torrent]
+  "Updates a torrent in the database"
+  (update torrents (set-fields (assoc torrent :updated-at (java.util.Date.)))
+          (where {:id (:id torrent)})))
+
+(defn remove-torrent! [torrent]
+  "Removes a torrent from the database"
+  (delete torrents (where {:id (:id torrent)})))
+
+(defn clear-db! []
+  "Clear the torrent database"
+  (delete torrents))
+
+(defn search [pattern]
+  "Filters db by name"
+  (select torrents (where {:name [like pattern]})))
+
+(defn by-state [state]
+  "Filters by state"
+  (select torrents (where {:state (name state)})))
+
+(defn find-or-create-by-bytes [bytes]
+  "Returns or creates and returns the torrent object contained within bytes"
+  (let [t (bytes->torrent bytes)
+        db-t (find-by-hash (:info-hash t))]
+    (if db-t
+      db-t
+      (first (select torrents (where {:id (last-id (insert torrents (values t)))}) (limit 1))))))
 
 (defn parse-magnet [magnet]
   "takes a string and returns a map of the hash and name"
@@ -101,47 +110,3 @@
     (catch Exception e
       (info "no torrent found!")
       nil)))
-
-(defn clear-db! [this]
-  "Clear the torrent database"
-  (io!
-   (debug "Clearing DB")
-   (when (db-exists? this)
-     (.delete (:db-file this)))
-   (reset! (:db this) {})))
-
-(defn search [this pattern]
-  "Filters db by name"
-  (filter (fn [[k v]] (>= (.indexOf (:name v) pattern) 0)) @(:db this)))
-
-(defn by-state [this state]
-  "Filters db by state"
-  (filter (fn [[k v]] (= (:state v) state)) @(:db this)))
-
-(defn remove-torrent! [this torrent]
-  "Removes a torrent from the database"
-  (debug "Removing torrent: " (:name torrent))
-  (swap! (:db this) dissoc (:hash torrent))
-  (save-db! this))
-
-(defn get-torrent [this hash]
-  "returns a torrent by hash"
-  (get @(:db this) hash))
-
-(defrecord TorrentDatabase [config db]
-  component/Lifecycle
-
-  (start [this]
-    (info "loading torrent database")
-    (load-or-create this)
-    this)
-
-  (stop [this]
-    (info "closing torrent database")
-    this))
-
-(defn new-torrent-db [config]
-  (map->TorrentDatabase {:db (atom {})
-                         :home-dir (:home-dir config)
-                         :db-file (io/file (:home-dir config) "torrentdb.json")
-                         :cache-dir [(:home-dir config) "torrent-cache"] }))

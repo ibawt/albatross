@@ -34,8 +34,7 @@
           (>! (:channel this) (:hash t))))
       (doseq [[k t] (get-ready-torrents this)]
         (info "Sending " (:name t) " to download queue")
-        (>! (:channel (:downloader this)) (:hash t))
-        ))))
+        (>! (:channel (:downloader this)) (:hash t))))))
 
 (defrecord Poller [downloader torrent-db seedbox running channel]
   component/Lifecycle

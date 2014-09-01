@@ -36,7 +36,6 @@
     (assoc m :aliases (clojure.string/split (:aliases m) #"\|"))
     m))
 
-
 (defentity series
   (has-many episodes)
   (prepare #(-> % (underscoreize-keys) (join-aliases)))

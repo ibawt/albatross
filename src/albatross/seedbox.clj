@@ -32,6 +32,7 @@
   {:basic-auth (:credentials this) :insecure? true :debug false})
 
 (defn- call [this cmd data]
+  (info "call " (:endpoint-url this))
   (xmlrpc/call* (:endpoint-url this) cmd [data] :request (request-params this)))
 
 (defn send-to [this t]
@@ -79,4 +80,4 @@
 
 (defn create-seedbox [config]
   (map->Seedbox {:credentials [(get-in config [:rtorrent :username]) (get-in config [:rtorrent :password])]
-                 :endpoint-url [(get-in config [:rtorrent :endpoint-url])]}))
+                 :endpoint-url (get-in config [:rtorrent :endpoint-url])}))
