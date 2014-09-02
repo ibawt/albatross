@@ -13,17 +13,17 @@
   (go
     (while @(:running this)
       (let [t-hash (<! (:channel this))
-            t (get (db/get-torrent (:torrent-db this) t-hash))]
+            t (db/find-by-hash t-hash)]
         (when (seedbox/is-complete? (:seedbox this) t)
           (info "PollJob " (:name t) " is complete!")
-          (db/update-torrent (assoc t :state :ready-to-download))
+          (db/update-torrent! (assoc t :state :ready-to-download))
           (>! (get-in this [:downloader :channel]) t-hash))))))
 
-(defn- get-polling-torrents [this]
-  (db/by-state (:torrent-db this) :seedbox))
+(def get-polling-torrents
+  (partial db/by-state :seedbox))
 
-(defn- get-ready-torrents [this]
-  (db/by-state (:torrent-db this) :ready-to-download))
+(def get-ready-torrents
+  (partial db/by-state :ready-to-download))
 
 (defn- poller [this]
   (go

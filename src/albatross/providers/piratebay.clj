@@ -17,24 +17,17 @@
   ; TODO lets not hardcode the port and host
   (str "http://localhost:3000/torrents/" (:name m) ".torrent?hash=" (:hash m)))
 
-(defn- load-from-disk [torrent-db t m]
-  (let [b (db/torrent->bytes t)]
-    (assoc m :torrent b)))
-
-(defn- download-and-save [torrent-db m]
+(defn- download-and-save [m]
   (when-let [b (db/magnet->torrent m)]
-    (let [t (db/bytes->torrent b)]
-      (db/save-to-disk torrent-db t b)
-      (db/update-torrent torrent-db t)
-      (assoc m :torrent b))))
+    (assoc m :torrent (db/find-or-create-by-bytes b))))
 
-(defn- fetch-magnet [torrent-db m]
-  (let [t (db/hash->torrent torrent-db (:hash m))]
+(defn- fetch-magnet [m]
+  (let [t (db/find-by-hash (:hash m))]
     (if t
-      (load-from-disk torrent-db t m)
-      (download-and-save torrent-db m))))
+      t
+      (download-and-save m))))
 
-(defn- search-piratebay [{torrent-db :torrent-db} params]
+(defn- search-piratebay [params]
   (->
    (http/get "https://thepiratebay.se/s/"
              {:query-params {:q (utils/make-search-query params)}})
@@ -44,7 +37,7 @@
    (extract-links)
    (filter-for-magnets)
    (#(map db/parse-magnet %1))
-   (#(map (partial fetch-magnet torrent-db) %1))
+   (#(map fetch-magnet %1))
    (#(remove nil? %1))
    (#(map make-magnet-link %1))))
 
@@ -54,6 +47,6 @@
    :backlog? false
    :magnet true})
 
-(defn create [torrent-db]
+(defn create []
   (info "created piratebay provider")
-  (merge config {:torrent-db torrent-db}))
+  config)

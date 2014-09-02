@@ -12,3 +12,9 @@
       (doseq [child (.listFiles f)]
         (delete-file-recursively child silently)))
     (delete-file f silently)))
+
+(defn to-byte-array [file]
+  (with-open [output (java.io.ByteArrayOutputStream.)]
+    (with-open [input (io/input-stream file)]
+      (io/copy input output))
+    (.toByteArray output)))

@@ -46,15 +46,19 @@
 ; TODO the sending and changing should be abstracted out of this
 (defn send-torrent-from-post
   "end point to receive a base64 encoded torrent in the file parameter"
-  [seedbox torrent-db request]
+  [seedbox request]
   (info "send-torrent-from-post: " request)
   (let [decoded-torrent (ring.util.codec/base64-decode (:file request))]
-    (db/update-torrent torrent-db (assoc (db/find-or-create-by-bytes torrent-db decoded-torrent) :state :seedbox))
+    (db/update-torrent! (assoc (db/find-or-create-by-bytes decoded-torrent) :state :seedbox))
     (seedbox/send-to seedbox decoded-torrent)
     "OK"))
 
 (defn torrent-by-hash [params]
-  (java.io.ByteArrayInputStream. (db/torrent->bytes (db/hash->torrent (:hash params)))))
+  (->
+   (:hash params)
+   (db/find-by-hash)
+   (:bytes)
+   (java.io.ByteArrayInputStream.)))
 
 (defn render-layout [inner]
   (clojure.string/join (layout/layout inner)))
@@ -62,7 +66,7 @@
 (defn render-partial [inner]
   (str/join (net.cgrand.enlive-html/emit* inner)))
 
-(defn app-routes [provider torrent-db seedbox]
+(defn app-routes [provider seedbox]
   (try
     (routes
      ;; HTML
@@ -78,8 +82,8 @@
 
      ;; API
      (POST "/search" {params :params} (provider/search-show provider params))
-     (POST "/send_torrent" {params :params} (send-torrent-from-post seedbox torrent-db params))
-     (GET "/torrents/:id" {params :params} (torrent-by-hash params torrent-db))
+     (POST "/send_torrent" {params :params} (send-torrent-from-post seedbox params))
+     (GET "/torrents/:id" {params :params} (torrent-by-hash params))
      (GET "/rss" request (provider/fetch-rss provider))
 
      (route/resources "/")
@@ -92,15 +96,15 @@
 (def my-site-defaults
   (dissoc site-defaults :security))
 
-(defn app [provider torrent-db seedbox]
-  (wrap-defaults (app-routes provider torrent-db seedbox) my-site-defaults))
+(defn app [provider seedbox]
+  (wrap-defaults (app-routes provider seedbox) my-site-defaults))
 
-(defrecord HTTPServer [port server torrent-db provider seedbox]
+(defrecord HTTPServer [port server provider seedbox]
   component/Lifecycle
   (start [this]
     (info "Starting HTTP server")
     (if-not server
-      (let [s (server/serve (app provider torrent-db seedbox)
+      (let [s (server/serve (app provider seedbox)
                             {:port port
                              :open-browser? false})]
         (info "created jetty server")

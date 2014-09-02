@@ -46,7 +46,7 @@
           (when-not (.exists dir)
             (.mkdir dir))))
       (download-file this (join "/" path) t (get file "length"))))
-  (db/update-torrent (assoc t :state :done)))
+  (db/update-torrent! (assoc t :state :done)))
 
 (defn- fetch-single [this t]
   (create-dir this t)
@@ -85,12 +85,12 @@
   (thread
     (while (:running this)
       (let [t-hash (<!! (:channel this))
-            t (db/get-torrent (:torrent-db this) t-hash)]
+            t (db/find-by-hash t-hash)]
         (when-not (= (:state t) :downloaded)
           (info "Got " (:name t) " to try and download!")
           (if (fetch-torrent t)
             (do (info "Fetched torrent: " (:name t))
-                (db/update-torrent (assoc t :state :downloaded))
+                (db/update-torrent! (assoc t :state :downloaded))
                 (unpack-torrent t)
                 (notify-sickbeard t))
             (warn "Torrent fetch failed: " (:name t))))))))

@@ -37,24 +37,18 @@
 (defn albatross-system [config]
   (map->AlbatrossSystem {:config config
                          :db (albatross.db/create-database config)
-                         :torrent-db (albatross.torrentdb/new-torrent-db config)
                          :seedbox (seedbox/create-seedbox config)
-
                          :downloader (component/using
-                                      (downloader/create-downloader config)
-                                      [:torrent-db])
-
+                                      (downloader/create-downloader config))
                          :poller (component/using
                                   (albatross.poller/create-poller)
-                                  [:downloader :torrent-db])
-
+                                  [:downloader])
                          :provider (component/using
                                     (albatross.provider/create-provider config)
-                                    [:torrent-db])
-
+                                    [])
                          :app (component/using
                                (handler/create-http-server config)
-                               [:provider :seedbox :torrent-db])}))
+                               [:provider :seedbox])}))
 (defn -main [& args]
   (component/start
    (albatross-system config)))

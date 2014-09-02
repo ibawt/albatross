@@ -1,4 +1,4 @@
-(ns albatross.test.core
+(ns albatross.core-test
   (:require [clojure.test :refer :all]
             [albatross.core :refer :all]
             [com.stuartsierra.component :as component]
