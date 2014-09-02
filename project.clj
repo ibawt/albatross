@@ -29,8 +29,6 @@
 
   :source-paths ["src"]
 
-  :main albatross.core
-
   :plugins [[lein-ring "0.8.10"]
             [cider/cider-nrepl "0.8.0-SNAPSHOT"]
             [lein-environ "0.5.0"]]

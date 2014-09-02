@@ -11,7 +11,7 @@
 (timbre/refer-timbre)
 
 (def components
-  [:downloader :torrent-db :poller :provider :seedbox :app :db])
+  [:downloader :poller :provider :seedbox :app :db])
 
 (def config
   {:home-dir (.getAbsolutePath (clojure.java.io/file (System/getProperty "user.home") "Torrents"))
@@ -38,14 +38,11 @@
   (map->AlbatrossSystem {:config config
                          :db (albatross.db/create-database config)
                          :seedbox (seedbox/create-seedbox config)
-                         :downloader (component/using
-                                      (downloader/create-downloader config))
+                         :downloader (downloader/create-downloader config)
                          :poller (component/using
                                   (albatross.poller/create-poller)
                                   [:downloader])
-                         :provider (component/using
-                                    (albatross.provider/create-provider config)
-                                    [])
+                         :provider (albatross.provider/create-provider config)
                          :app (component/using
                                (handler/create-http-server config)
                                [:provider :seedbox])}))

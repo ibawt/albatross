@@ -1,6 +1,5 @@
 (ns albatross.torrentdb-test
   (:use clojure.test
-        ring.mock.request
         albatross.torrentdb)
   (:require [albatross.utils :as utils]
             [albatross.db :as db]
@@ -92,3 +91,16 @@
 (deftest json-serialization-test
   (testing "sanity check"
     (is (= (:files foobar-land) (:files (find-by-hash (:info-hash foobar-land)))))))
+
+(deftest filtering-test
+  (insert torrents (values {:name "BLAGUM" :state "foobar"}))
+  (insert torrents (values {:name "BLAGUM2" :state "foobar"}))
+  (insert torrents (values {:name "NOT BLAGUM3" :state "barfoo"}))
+
+  (testing "simple search by state"
+    (is (= 2 (count (by-state :foobar))))
+    (is (= 1 (count (by-state :barfoo)))))
+
+  (testing "simple search by name"
+    (is (= 3 (count (search "%BLAGUM%"))))
+    (is (= 1 (count (search "foobar%"))))))
