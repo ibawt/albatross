@@ -16,3 +16,4 @@ pom.xml.asc
 /.sass-cache/
 /albatross.log
 /abatross.db
+/albatross-test.db

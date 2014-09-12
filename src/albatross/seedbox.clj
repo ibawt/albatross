@@ -26,46 +26,42 @@
    :is_active
    :is_hash_checked
    :is_multi_file
-   :is_open])
+   :is_open
+   :is_private])
 
 (defn- request-params [this]
   {:basic-auth (:credentials this) :insecure? true :debug false})
 
 (defn- call [this cmd data]
-  (info "call " (:endpoint-url this))
   (xmlrpc/call* (:endpoint-url this) cmd [data] :request (request-params this)))
+
+(def ^:private get-torrent-attributes
+  (map #(str "d." (name %) "=") torrent-attributes))
+
+(defn- torrent-list-by-hash [torrent-dicts]
+  (zipmap (map #(%1 "hash") torrent-dicts) torrent-dicts))
+
+(defn- torrent-list-to-map [torrent-list]
+  (map (partial zipmap torrent-attributes) torrent-list))
+
+(defn list-torrents [this]
+  (torrent-list-to-map (call this :d.multicall (conj get-torrent-attributes "main"))))
+
+(defn- action-to-call [action]
+  (keyword (str "d." (name action))))
+
+(defn cmd [this action hash]
+  (call this (action-to-call action) hash))
+
+(defn cmd-p [this action hash]
+  "same as send but implicity compares the result against the string 1"
+  (= "1" (cmd this action hash)))
 
 (defn send-to [this t]
   (call this :load_raw_start t))
 
 (defn is-complete? [this torrent]
-  (= "1" (call :d.complete (clojure.string/upper-case (:hash torrent)))))
-
-(def get-torrent-attributes
-  (vec (map #(str "d." % "=") torrent-attributes)))
-
-(defn torrent-list-by-hash [torrent-dicts]
-  (zipmap (map #(%1 "hash") torrent-dicts) torrent-dicts))
-
-(defn torrent-list-to-map [torrent-list]
-  (map #(into {} (map vector torrent-attributes %1)) torrent-list))
-
-(def list-torrent-arguments
-  (vec (concat ["main"] get-torrent-attributes)))
-
-;; (defn list-torrents []
-;;  (xmlrpc/call* endpoint-url "d.multicall" list-torrent-arguments :request request-params))
-
-;; ;; TODO make this work
-;; (defn get-torrent-by-hash [hash]
-;;   "doesn't work yet"
-;;   (xmlrpc/call* endpoint-url "system.multicall" (map #(hash-map "methodName" % "param" hash) get-torrent-attributes) :request request-params))
-
-;; (defn get-all-remote-torrents []
-;;  (->
-;;   (list-torrents)
-;;   torrent-list-to-map
-;;   torrent-list-by-hash))
+  (cmd-p this :complete (:info-hash torrent)))
 
 (defrecord Seedbox [credentials endpoint-url]
   component/Lifecycle

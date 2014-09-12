@@ -27,10 +27,17 @@
   (utils/delete-file albatross-db-file)
   (alter-var-root #'db (fn [db] nil)))
 
-(defn wrap-tests [fn]
+(defn wrap-all-tests [fn]
   (init-db)
   (fn)
   (close-db))
+
+(use-fixtures :once wrap-all-tests)
+
+(defn wrap-tests [fn]
+  (korma.db/transaction
+   (fn)
+   (korma.db/rollback)))
 
 (use-fixtures :each wrap-tests)
 
