@@ -45,7 +45,8 @@
   (map (partial zipmap torrent-attributes) torrent-list))
 
 (defn list-torrents [this]
-  (torrent-list-to-map (call this :d.multicall (conj get-torrent-attributes "main"))))
+  (torrent-list-to-map (call this :d.multicall
+                             (conj get-torrent-attributes "main"))))
 
 (defn- action-to-call [action]
   (keyword (str "d." (name action))))

@@ -19,7 +19,7 @@
 (defn filter-config [this type]
   (filter type (vals (:providers this))))
 
-; TODO complete
+;;; TODO complete
 (defn fetch-rss [this]
   "returns a list of rss-urls"
   (:body (http/get (:rss-url (first (filter-config this :rss-url))))))

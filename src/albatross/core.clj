@@ -14,7 +14,8 @@
   [:downloader :poller :provider :seedbox :app :db])
 
 (def config
-  {:home-dir (.getAbsolutePath (clojure.java.io/file (System/getProperty "user.home") "Torrents"))
+  {:home-dir (.getAbsolutePath (clojure.java.io/file
+                                (System/getProperty "user.home") "Torrents"))
    :port 3000
    :rtorrent {:username (env :rtorrent-username)
               :password (env :rtorrent-password)
