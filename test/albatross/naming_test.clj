@@ -1,4 +1,4 @@
-(ns albatross.test.naming
+(ns albatross.naming-test
   (:use clojure.test
         albatross.naming))
 
@@ -22,8 +22,8 @@
     (is (= 48 (roman "XLVIII")))
     (is (= 76 (roman "LXXVI")))))
 
-(deftest clean-name-test
-  (let [result "an example 1.0 test"]
-    (testing "some names"
-      (is (= result (clean-name "an_example_1.0_test")))
-      (is (= result (clean-name "an.example.1.0.test"))))))
+;; (deftest clean-name-test
+;;   (let [result "an example 1.0 test"]
+;;     (testing "some names"
+;;       (is (= result (clean-name "an_example_1.0_test")))
+;;       (is (= result (clean-name "an.example.1.0.test"))))))

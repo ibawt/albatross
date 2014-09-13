@@ -107,14 +107,16 @@
 (defrecord Database [config db-spec db]
   component/Lifecycle
   (start [this]
-    (when-not (and db-spec db)
+    (when-not db-spec
       (let [db-spec (sqlite3 {:db (:db-file config)})
             db (create-db db-spec)]
+        (info "start...")
         (default-connection db)
         (create-tables db-spec)
         (merge this {:db-spec db-spec :db db}))))
 
   (stop [this]
+    (info "stop...")
     this))
 
 (defn create-database [config]

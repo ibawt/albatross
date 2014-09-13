@@ -49,7 +49,8 @@
   [seedbox request]
   (info "send-torrent-from-post: " request)
   (let [decoded-torrent (ring.util.codec/base64-decode (:file request))]
-    (db/update-torrent! (assoc (db/find-or-create-by-bytes decoded-torrent) :state :seedbox))
+    (db/update-torrent!
+     (assoc (db/find-or-create-by-bytes decoded-torrent) :state :seedbox))
     (seedbox/send-to seedbox decoded-torrent)
     "OK"))
 

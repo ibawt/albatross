@@ -69,7 +69,8 @@
           (where (= :myshow_id myshow-id))))
 
 (defn group-and-sort [id]
-  (reverse (map #(reverse (sort-by :number %)) (partition-by :season (get-episodes id)))))
+  (reverse (map #(reverse (sort-by :number %))
+                (partition-by :season (get-episodes id)))))
 
 (defn show [id]
   (let [myshow (find-myshow-id id)

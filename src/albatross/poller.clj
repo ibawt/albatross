@@ -28,15 +28,18 @@
 (defn- poller [this]
   (go
     (while @(:running this)
-      (<! (timeout 5000))
-      (let [torrents (get-polling-torrents this)]
-        (doseq [[k t] torrents]
-          (>! (:channel this) (:hash t))))
-      (doseq [[k t] (get-ready-torrents this)]
-        (info "Sending " (:name t) " to download queue")
-        (>! (:channel (:downloader this)) (:hash t))))))
+      (try
+        (<! (timeout 5000))
+        (let [torrents (get-polling-torrents this)]
+          (doseq [[k t] torrents]
+            (>! (:channel this) (:hash t))))
+        (doseq [[k t] (get-ready-torrents this)]
+          (info "Sending " (:name t) " to download queue")
+          (>! (:channel (:downloader this)) (:hash t)))
+        (catch Exception e
+          (warn e))))))
 
-(defrecord Poller [downloader torrent-db seedbox running channel]
+(defrecord Poller [downloader seedbox running channel]
   component/Lifecycle
   (start [this]
     (info "Starting Poller")

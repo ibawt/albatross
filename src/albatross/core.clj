@@ -26,7 +26,7 @@
                 :pass (env :iptorrents-torrent-pass)}
    :db-file "abatross.db"})
 
-(defrecord AlbatrossSystem [config downloader torrent-db poller]
+(defrecord AlbatrossSystem [config downloader poller]
   component/Lifecycle
   (start [this]
     (info "AlbatrossSystem starting")

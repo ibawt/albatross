@@ -1,4 +1,4 @@
-(ns albatross.test.utils
+(ns albatross.utils-test
   (:require [clojure.test :refer :all]
             [albatross.utils :refer :all]
             [clojure.java.io :as io]))
@@ -32,4 +32,5 @@
     (delete-file-recursively tmp-dir)
     (is (not (.exists tmp-dir))))
   (testing "silently flag for failure exceptions"
-    (is (thrown? java.io.IOException (delete-file-recursively "file that isn't there" false)))))
+    (is (thrown? java.io.IOException
+                 (delete-file-recursively "file that isn't there" false)))))

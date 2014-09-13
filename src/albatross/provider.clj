@@ -34,7 +34,7 @@
     (clojure.string/join "," results)))
 
 
-(defrecord Provider [config providers torrent-db]
+(defrecord Provider [config providers]
   component/Lifecycle
 
   (start [this]
