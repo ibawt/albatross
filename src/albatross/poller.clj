@@ -42,7 +42,6 @@
 (defrecord Poller [downloader seedbox running channel]
   component/Lifecycle
   (start [this]
-    (info "Starting Poller")
     (when-not running
       (reset! running true)
       (poller this)
@@ -50,7 +49,6 @@
     this)
 
   (stop [this]
-    (info "Stopping Poller")
     (when running
       (reset! running false))
     this))

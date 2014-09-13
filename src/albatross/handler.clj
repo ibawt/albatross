@@ -103,17 +103,14 @@
 (defrecord HTTPServer [port server provider seedbox]
   component/Lifecycle
   (start [this]
-    (info "Starting HTTP server")
     (if-not server
       (let [s (server/serve (app provider seedbox)
                             {:port port
                              :open-browser? false})]
-        (info "created jetty server")
         (assoc this :server s))
       this))
 
   (stop [this]
-    (info "Stopping HTTP server:")
     (when server (.stop server))
     (assoc this :server nil)))
 

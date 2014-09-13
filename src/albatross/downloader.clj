@@ -84,32 +84,32 @@
 (defn downloader-job [this]
   (thread
     (while (:running this)
-      (let [t-hash (<!! (:channel this))
-            t (db/find-by-hash t-hash)]
-        (when-not (= (:state t) :downloaded)
-          (info "Got " (:name t) " to try and download!")
-          (if (fetch-torrent t)
-            (do (info "Fetched torrent: " (:name t))
-                (db/update-torrent! (assoc t :state :downloaded))
-                (unpack-torrent t)
-                (notify-sickbeard t))
-            (warn "Torrent fetch failed: " (:name t))))))))
+      (try
+        (let [t-hash (<!! (:channel this))
+              t (db/find-by-hash t-hash)]
+          (when-not (= (:state t) :downloaded)
+            (info "Got " (:name t) " to try and download!")
+            (if (fetch-torrent t)
+              (do (info "Fetched torrent: " (:name t))
+                  (db/update-torrent! (assoc t :state :downloaded))
+                  (unpack-torrent t)
+                  (notify-sickbeard t))
+              (warn "Torrent fetch failed: " (:name t)))))
+        (catch Exception e
+          (warn e))))))
+
 
 (defrecord Downloader [dir channel credentials remote-base-url running]
   component/Lifecycle
 
   (start [this]
-    (info "Starting Downloader")
     (when-not running
-      (info "start...")
       (reset! running true)
       (downloader-job this))
     this)
 
   (stop [this]
-    (info "Stopping downloader")
     (when running
-      (info "stop...")
       (reset! running false))
     this))
 

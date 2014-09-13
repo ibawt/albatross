@@ -68,11 +68,9 @@
   component/Lifecycle
 
   (start [this]
-    (info "Starting Seedbox")
     this)
 
   (stop [this]
-    (info "Stopping Seedbox")
     this))
 
 (defn create-seedbox [config]

@@ -38,14 +38,12 @@
   component/Lifecycle
 
   (start [this]
-    (info "Starting providers")
     (if (nil? providers) ; just so we don't hammer iptorrents from the repl
       (assoc this :providers {:iptorrents (iptorrents/create config)
                               :piratebay (piratebay/create)})
       this))
 
   (stop [this]
-    (info "Stopping providers")
     this))
 
 (defn create-provider [config]

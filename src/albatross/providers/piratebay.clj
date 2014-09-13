@@ -48,5 +48,4 @@
    :magnet true})
 
 (defn create []
-  (info "created piratebay provider")
   config)
