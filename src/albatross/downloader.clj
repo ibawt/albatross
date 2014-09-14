@@ -1,17 +1,16 @@
 (ns albatross.downloader
   (:require [clj-http.client :as http]
-            [clojure.core.async :refer [go <! >! <!! chan unique thread]]
             [taoensso.timbre :as timbre]
             [albatross.torrentdb :as db]
             [clojure.java.io :as io]
             [environ.core :refer :all]
             [clojure.string :refer [join]]
             [clojure.java.shell :refer [sh]]
+            [clojure.core.async :refer [go <! >! <!! chan unique thread close! timeout]]
+
             [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
-
-(def concurrent-downloads 3)
 
 (defn- get-download-dir [this torrent]
   (conj (:dir this) (:name torrent)))
@@ -116,7 +115,7 @@
 (defn create-downloader [config]
   (map->Downloader
    {:dir [(:home-dir config) "downloads"]
-    :channel (unique (chan concurrent-downloads))
+    :channel (unique (chan 1))
     :credentials [(:rtorrent-username config) (:rtorrent-password config)]
     :remote-base-url (:remote-base-url config)
     :running (atom false)}))

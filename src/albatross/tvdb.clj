@@ -128,9 +128,6 @@
 
 (defn to-number [x]
   (when-not (= x "") (read-string x)))
-  ;; (if (= x "")
-  ;;   nil
-  ;;   (read-string x)))
 
 (defn parse-episode
   [x]
@@ -168,8 +165,7 @@
   (select series (where (like :name (str name "%")))))
 
 (defn tvdb-id->series [tvdb-id]
-  (first (select series (where (= :tvdb_id tvdb-id))))
-  )
+  (first (select series (where (= :tvdb_id tvdb-id)))))
 
 (defn episodes-for-series [series]
   (select episodes (where (= :series_id (:tvdb-id series)))))

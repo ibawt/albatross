@@ -25,7 +25,7 @@
 (def ^:private create-series
   "creates the table to contain tvdb information"
   [(jdbc/create-table-ddl :series
-                           [:id "integer" :primary :key]
+                           [:id "integer" :primary :key] ;; my* index into this
                            [:language "varchar(255)"]
                            [:name "varchar(255)"]
                            [:aliases "text"]
@@ -57,7 +57,9 @@
                            [:filename "varchar(255)"]
                            [:thumb-width "integer"]
                            [:thumb-height "integer"]
-                           :entities sanitize-entities)])
+                           :entities sanitize-entities)
+   "CREATE INDEX tvdb_idx on episodes(tvdb_id)"
+   "CREATE INDEX series_idx on episodes(series_id)"])
 
 (def ^:private create-myshows
   "table for my shows"
@@ -74,7 +76,8 @@
                            [:myshow-id "integer"]
                            [:episode-id "integer"]
                            [:state "varchar(255)"]
-                           :entities sanitize-entities)])
+                           :entities sanitize-entities)
+   "CREATE INDEX myshow_idx on myepisodes(myshow_id)"])
 
 (def ^:private create-torrents
   "table for torrents"

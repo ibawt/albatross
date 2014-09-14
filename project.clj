@@ -34,9 +34,7 @@
             [lein-environ "0.5.0"]]
 
   :profiles { :dev {:injections [(require 'pjstadig.humane-test-output)
-                                 (pjstadig.humane-test-output/activate!)
-                                 (require '[taoensso.timbre :as timbre])
-                                 (timbre/refer-timbre)]
+                                 (pjstadig.humane-test-output/activate!)]
 
                     :dependencies [[javax.servlet/servlet-api "2.5"]
                                    [ring-mock "0.1.5"]

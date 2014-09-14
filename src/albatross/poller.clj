@@ -2,57 +2,52 @@
   (:require [albatross.torrentdb :as db]
             [taoensso.timbre :as timbre]
             [clj-http.client :as http]
-            [clojure.core.async :refer [go <! >! chan timeout alts! unique]]
+            [clojure.core.async :refer [go <! >! <!! chan unique thread close! timeout]]
             [albatross.seedbox :as seedbox]
             [albatross.downloader :as downloader]
             [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
 
-(defn- poll-job [this]
-  (go
-    (while @(:running this)
-      (let [t-hash (<! (:channel this))
-            t (db/find-by-hash t-hash)]
-        (when (seedbox/is-complete? (:seedbox this) t)
-          (info "PollJob " (:name t) " is complete!")
-          (db/update-torrent! (assoc t :state :ready-to-download))
-          (>! (get-in this [:downloader :channel]) t-hash))))))
+(def ^:private poll-sleep-time 5000)
 
-(def get-polling-torrents
+(def ^:private get-polling-torrents
   (partial db/by-state :seedbox))
 
-(def get-ready-torrents
-  (partial db/by-state :ready-to-download))
+(defn- check-seedbox [this]
+  (doseq [t (get-polling-torrents)]
+    (if (seedbox/is-complete? (:seedbox this) t)
+      (db/update-torrent! (assoc t :state :ready-to-download))
 
-(defn- poller [this]
+      )))
+
+(defn- poller-fn [this]
   (go
     (while @(:running this)
       (try
-        (<! (timeout 5000))
-        (let [torrents (get-polling-torrents this)]
-          (doseq [[k t] torrents]
-            (>! (:channel this) (:hash t))))
-        (doseq [[k t] (get-ready-torrents this)]
-          (info "Sending " (:name t) " to download queue")
-          (>! (:channel (:downloader this)) (:hash t)))
+        (info "checking seedbox")
+        (<! (timeout poll-sleep-time))
+        (info "after timeout")
         (catch Exception e
-          (warn e))))))
+          (warn e "Caught exception in poller"))))
+    (info "out of while loop")))
 
-(defrecord Poller [downloader seedbox running channel]
+(defrecord Poller [seedbox downloader running poller]
   component/Lifecycle
   (start [this]
-    (when-not running
-      (reset! running true)
-      (poller this)
-      (poll-job this))
-    this)
+    (if-not @running
+      (do
+        (reset! running true)
+        (let [p (poller-fn this)]
+          (info "p: "p)
+          (assoc this :poller p)))
+      this))
 
   (stop [this]
     (when running
+      (close! poller)
       (reset! running false))
     this))
 
 (defn create-poller []
-  (map->Poller {:running (atom false)
-                :channel (unique (chan 10))}))
+  (map->Poller {:running (atom false)}))
