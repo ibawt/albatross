@@ -1,13 +1,24 @@
 (ns albatross.poller
   (:require [albatross.torrentdb :as db]
             [taoensso.timbre :as timbre]
-            [clj-http.client :as http]
-            [clojure.core.async :refer [go <! >! <!! chan unique thread close! timeout]]
+            [clojure.core.async :refer [close! timeout chan go alt!]]
             [albatross.seedbox :as seedbox]
-            [albatross.downloader :as downloader]
             [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
+
+(defmacro sleep
+  ([ms stop-channel]
+     `(alts! [(timeout ~ms) ~stop-channel]))
+  ([ms]
+     `(<! (timeout ~ms))))
+
+(defmacro poll-go-loop [bindings & body]
+  (let [stop (first bindings)]
+    `(let [~stop (chan)]
+       (go (while (alt! ~stop false :default :keep-going)
+             ~@body))
+       ~stop)))
 
 (def ^:private poll-sleep-time 5000)
 
@@ -16,38 +27,30 @@
 
 (defn- check-seedbox [this]
   (doseq [t (get-polling-torrents)]
-    (if (seedbox/is-complete? (:seedbox this) t)
+    (when (seedbox/is-complete? (:seedbox this) t)
       (db/update-torrent! (assoc t :state :ready-to-download))
-
-      )))
+      (<! (:channel (:downloader this)) t))))
 
 (defn- poller-fn [this]
-  (go
-    (while @(:running this)
-      (try
-        (info "checking seedbox")
-        (<! (timeout poll-sleep-time))
-        (info "after timeout")
-        (catch Exception e
-          (warn e "Caught exception in poller"))))
-    (info "out of while loop")))
+  (poll-go-loop [stop-timeout]
+                (try
+                  (check-seedbox this)
+                  (catch Exception e
+                    (warn e)))
+                (sleep poll-sleep-time stop-timeout)))
 
-(defrecord Poller [seedbox downloader running poller]
+(defrecord Poller [seedbox downloader poller]
   component/Lifecycle
   (start [this]
-    (if-not @running
-      (do
-        (reset! running true)
-        (let [p (poller-fn this)]
-          (info "p: "p)
-          (assoc this :poller p)))
+    (if-not poller
+      (assoc :poller (poller-fn this))
       this))
 
   (stop [this]
-    (when running
+    (when poller
       (close! poller)
-      (reset! running false))
+      (dissoc this :poller))
     this))
 
 (defn create-poller []
-  (map->Poller {:running (atom false)}))
+  (->Poller))
