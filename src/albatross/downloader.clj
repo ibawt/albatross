@@ -6,8 +6,8 @@
             [environ.core :refer :all]
             [clojure.string :refer [join]]
             [clojure.java.shell :refer [sh]]
-            [clojure.core.async :refer [go <! >! <!! chan unique thread close! timeout]]
-
+            [clojure.core.async :refer
+             [<!! >!! chan unique thread close! alt!!]]
             [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
@@ -23,28 +23,26 @@
 ;;; NEEDS TO BE NOT TERRIBLE
 ;;; should handle partially downloaded better
 (defn- download-file [this filename torrent size]
-  (info "Downloading " filename " of " (:name torrent))
   (let [file ^java.io.File (apply io/file (conj (get-download-dir this torrent) filename))]
     (when (< (.getTotalSpace file) size)
       (with-open [out (io/output-stream file)]
         (io/copy (:body (http/get (str (:remote-base-url this) (:name torrent) "/" filename)
                                   {:as :stream
                                    :basic-auth (:credentials this)
-                                   :insecure? true
-                                   })) out :buffer-size (* 1024 1024))))))
+                                   :insecure? true})) out :buffer-size (* 1024 1024))))))
 
 (defn- fetch-multi [this t]
   (create-dir this t)
   ; clean up
   (doseq [file (:files t)]
-    (let [path (filter #(pos? (count %1)) (get file "path"))]
+    (let [path (filter #(pos? (count %1)) (get file :path))]
       (when (pos? (count path))
         (let [dir ^java.io.File (apply io/file
                          (concat (get-download-dir this t)
                                  (butlast path)))]
           (when-not (.exists dir)
             (.mkdir dir))))
-      (download-file this (join "/" path) t (get file "length"))))
+      (download-file this (join "/" path) t (get file :length))))
   (db/update-torrent! (assoc t :state :done)))
 
 (defn- fetch-single [this t]
@@ -63,11 +61,11 @@
                                :quiet "1"}})
     (catch Exception e)))
 
-(defn- fetch-torrent [t]
+(defn- fetch-torrent [this t]
   (try
     (if-not (nil? (:files t))
-      (fetch-multi t)
-      (fetch-single t))
+      (fetch-multi this t)
+      (fetch-single this t))
     true
     (catch Exception e
       (error e)
@@ -80,42 +78,64 @@
   (doseq [file (get-rar-files t)]
     (sh "unrar" "x" "-y"  (join "/" (filter #(pos? (count %)) (get file "path"))) :dir (join "/" (get-download-dir this t)))))
 
-(defn downloader-job [this]
+(defn- do-download [this t]
+  (try
+    (when (= (:state t) :ready-to-download)
+      (if (fetch-torrent this t)
+        (do
+          (db/update-torrent! (assoc t :state :downloaded))
+          (unpack-torrent this t)
+          (notify-sickbeard this t))))
+    (catch Exception e
+      (warn e))))
+
+(defn- downloader-job [this job-id]
+  (info "[Job]: " job-id " started")
   (thread
-    (while (:running this)
-      (try
-        (let [t-hash (<!! (:channel this))
-              t (db/find-by-hash t-hash)]
-          (when-not (= (:state t) :downloaded)
-            (info "Got " (:name t) " to try and download!")
-            (if (fetch-torrent t)
-              (do (info "Fetched torrent: " (:name t))
-                  (db/update-torrent! (assoc t :state :downloaded))
-                  (unpack-torrent t)
-                  (notify-sickbeard t))
-              (warn "Torrent fetch failed: " (:name t)))))
-        (catch Exception e
-          (warn e))))))
+    (loop []
+      (when-let [t (<!! (:download-queue this))]
+        (do-download this t)
+        (recur)))
+    (info "[Job]: " job-id " stopped")))
 
+(defn- populate-download-queue [queue]
+  "grabs ready to download items from the db for app init, otherwise things come from the poller"
+  (thread
+    (doseq [t (db/by-state :ready-to-download)]
+      (infof (:name t) "is ready to download")
+      (>!! queue t))))
 
-(defrecord Downloader [dir channel credentials remote-base-url running]
+(defrecord Downloader [dir download-queue jobs credentials remote-base-url
+                       sickbeard-post-process-url concurrent-downloads]
   component/Lifecycle
 
   (start [this]
-    (when-not running
-      (reset! running true)
-      (downloader-job this))
-    this)
+    (if-not download-queue
+      ;; FIXME code is ugly here
+      (let [num-jobs (:concurrent-downloads this)
+            t (assoc this :download-queue (unique (chan num-jobs)))]
+        (populate-download-queue (:download-queue t))
+        (assoc t :jobs (into [] (for [n (range num-jobs)]
+                                  (downloader-job t n)))))
+      this))
 
   (stop [this]
-    (when running
-      (reset! running false))
-    this))
+    (if download-queue
+      (do
+        (close! download-queue)
+        (assoc this :download-queue nil))
+      this)))
+
+(def ^:private defaults
+  {:concurrent-downloads 2
+   :sickbeard-post-process-url
+   "http://127.0.0.1:8081/home/postprocess/processEpisode"})
 
 (defn create-downloader [config]
-  (map->Downloader
-   {:dir [(:home-dir config) "downloads"]
-    :channel (unique (chan 1))
-    :credentials [(:rtorrent-username config) (:rtorrent-password config)]
-    :remote-base-url (:remote-base-url config)
-    :running (atom false)}))
+  (let [c (merge defaults config)]
+    (map->Downloader
+     {:dir [(:home-dir c) "downloads"]
+      :credentials [(get-in c [:rtorrent :username]) (get-in c [:rtorrent :password])]
+      :remote-base-url (:remote-base-url c)
+      :sickbeard-post-process-url (:sickbeard-post-process-url c)
+      :concurrent-downloads (:concurrent-downloads c)})))

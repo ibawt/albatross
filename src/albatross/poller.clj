@@ -1,7 +1,8 @@
 (ns albatross.poller
   (:require [albatross.torrentdb :as db]
             [taoensso.timbre :as timbre]
-            [clojure.core.async :refer [close! timeout chan go alt!]]
+            [clojure.core.async :refer
+             [close! timeout chan go alt! >! >!! alts!]]
             [albatross.seedbox :as seedbox]
             [com.stuartsierra.component :as component]))
 
@@ -27,9 +28,11 @@
 
 (defn- check-seedbox [this]
   (doseq [t (get-polling-torrents)]
+    (info "checking:" t)
     (when (seedbox/is-complete? (:seedbox this) t)
+      (info "it's done")
       (db/update-torrent! (assoc t :state :ready-to-download))
-      (<! (:channel (:downloader this)) t))))
+      (>! (:download-queue (:downloader this)) t))))
 
 (defn- poller-fn [this]
   (poll-go-loop [stop-timeout]
@@ -39,18 +42,22 @@
                     (warn e)))
                 (sleep poll-sleep-time stop-timeout)))
 
+(defn wake [this]
+  (>!! (:poller this)))
+
 (defrecord Poller [seedbox downloader poller]
   component/Lifecycle
   (start [this]
     (if-not poller
-      (assoc :poller (poller-fn this))
+      (assoc this :poller (poller-fn this))
       this))
 
   (stop [this]
-    (when poller
-      (close! poller)
-      (dissoc this :poller))
-    this))
+    (if poller
+      (do
+        (close! poller)
+        (dissoc this :poller))
+      this)))
 
 (defn create-poller []
-  (->Poller))
+  (map->Poller {}))

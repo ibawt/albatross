@@ -17,6 +17,7 @@
   {:home-dir (.getAbsolutePath (clojure.java.io/file
                                 (System/getProperty "user.home") "Torrents"))
    :port 3000
+   :remote-base-url (env :rtorrents-download-url)
    :rtorrent {:username (env :rtorrent-username)
               :password (env :rtorrent-password)
               :endpoint-url (env :rtorrents-xmlrpc-url)}
@@ -24,7 +25,7 @@
                 :password (env :iptorrents-password)
                 :rss-url (env :iptorrents-rss-url)
                 :pass (env :iptorrents-torrent-pass)}
-   :db-file "abatross.db"})
+   :db-file "albatross.db"})
 
 (defrecord AlbatrossSystem [config downloader poller]
   component/Lifecycle
@@ -40,7 +41,7 @@
                          :downloader (downloader/create-downloader config)
                          :poller (component/using
                                   (albatross.poller/create-poller)
-                                  [:downloader])
+                                  [:downloader :db :seedbox])
                          :provider (albatross.provider/create-provider config)
                          :app (component/using
                                (handler/create-http-server config)

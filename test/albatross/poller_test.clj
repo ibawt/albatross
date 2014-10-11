@@ -5,13 +5,12 @@
             [albatross.db :as db]))
 
 
-(deftest poller-start-and-stop
-  (testing "initial state"
-    (let [poller (create-poller)]
-      (is (false? @(:running poller)))
-      (is (nil? (:poller poller)))))
-  (testing "starting poller"
-    (let [poller (component/start (create-poller))]
-      (is (future? (:poller poller)))
-      (is @(:running poller))
-      (component/stop poller))))
+;; (deftest poller-start-and-stop
+;;   (testing "initial state"
+;;     (let [poller (create-poller)]
+;;       (is (nil? (:poller poller)))))
+;;   (testing "starting and stopping poller"
+;;     (with-redefs [check-seedbox (fn [t])]
+;;       (let [poller (component/start (create-poller))]
+;;         (is (some? (:poller poller)))
+;;         (component/stop poller)))))

@@ -92,8 +92,6 @@
     (catch Exception e
       (info e "Caught exception in routes"))))
 
-(alter-var-root #'*out* (constantly *out*))
-
 (def my-site-defaults
   (dissoc site-defaults :security))
 
@@ -106,7 +104,8 @@
     (if-not server
       (let [s (server/serve (app provider seedbox)
                             {:port port
-                             :open-browser? false})]
+                             :open-browser? false
+                             :stacktraces? true})]
         (assoc this :server s))
       this))
 

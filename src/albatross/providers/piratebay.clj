@@ -27,7 +27,7 @@
       t
       (download-and-save m))))
 
-(defn- search-piratebay [params]
+(defn- search-piratebay [config params]
   (->
    (http/get "https://thepiratebay.se/s/"
              {:query-params {:q (utils/make-search-query params)}})

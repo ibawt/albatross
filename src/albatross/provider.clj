@@ -24,14 +24,17 @@
   "returns a list of rss-urls"
   (:body (http/get (:rss-url (first (filter-config this :rss-url))))))
 
-
 ;;; TODO clean this up
 (defn search-show [this params]
   "returns a list of urls to retreive the torrent at"
-  (let [results
-        (flatten (map #((:search-show %1) %1 params) (filter-config this :search-show)))]
-    (info results)
-    (clojure.string/join "," results)))
+  (try
+    (info params)
+    (let [results
+          (flatten (map #((:search-show %1) %1 params) (filter-config this :search-show)))]
+      (info results)
+      (clojure.string/join "," results))
+    (catch Exception e
+      (warn e))))
 
 
 (defrecord Provider [config providers]
