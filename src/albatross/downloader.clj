@@ -23,6 +23,7 @@
 ;;; NEEDS TO BE NOT TERRIBLE
 ;;; should handle partially downloaded better
 (defn- download-file [this filename torrent size]
+  (infof "downloading: %s" filename)
   (let [file ^java.io.File (apply io/file (conj (get-download-dir this torrent) filename))]
     (when (< (.getTotalSpace file) size)
       (with-open [out (io/output-stream file)]
@@ -72,11 +73,15 @@
       false)))
 
 (defn- get-rar-files [t]
-  (filter #(.endsWith (join "/" (get %1 "path")) ".rar") (:files t)))
+  (filter #(.endsWith (join "/" (get %1 :path)) ".rar") (:files t)))
 
 (defn- unpack-torrent [this t]
   (doseq [file (get-rar-files t)]
-    (sh "unrar" "x" "-y"  (join "/" (filter #(pos? (count %)) (get file "path"))) :dir (join "/" (get-download-dir this t)))))
+    (let [r  (sh "unrar" "x" "-y"  (join "/" (filter #(pos? (count %)) (get file :path))) :dir (join "/" (get-download-dir this t)))]
+      (if (= (:exit r) 0)
+        (do (info "unarchive success!")
+            (db/update-torrent! (assoc t :state :complete)))
+        (errorf "Error un-archiving: %s output: %s" (:name t) (:out r))))))
 
 (defn- do-download [this t]
   (try
@@ -105,6 +110,12 @@
       (infof (:name t) "is ready to download")
       (>!! queue t))))
 
+(defn- unpack-downloads[this]
+  "looks for things that should be unpacked"
+  (thread
+    (doseq [t (db/by-state :downloaded)]
+      (unpack-torrent this t))))
+
 (defrecord Downloader [dir download-queue jobs credentials remote-base-url
                        sickbeard-post-process-url concurrent-downloads]
   component/Lifecycle
@@ -115,6 +126,7 @@
       (let [num-jobs (:concurrent-downloads this)
             t (assoc this :download-queue (unique (chan num-jobs)))]
         (populate-download-queue (:download-queue t))
+        (unpack-downloads t)
         (assoc t :jobs (into [] (for [n (range num-jobs)]
                                   (downloader-job t n)))))
       this))
