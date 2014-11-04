@@ -12,6 +12,8 @@
 
 (timbre/refer-timbre)
 
+(def ^:private BUFFER_SIZE (* 1024 1024))
+
 (defn- get-download-dir [this torrent]
   (conj (:dir this) (:name torrent)))
 
@@ -30,7 +32,8 @@
         (io/copy (:body (http/get (str (:remote-base-url this) (:name torrent) "/" filename)
                                   {:as :stream
                                    :basic-auth (:credentials this)
-                                   :insecure? true})) out :buffer-size (* 1024 1024))))))
+                                   :insecure? true})) out :buffer-size BUFFER_SIZE)))))
+
 
 (defn- fetch-multi [this t]
   (create-dir this t)
@@ -48,15 +51,17 @@
 
 (defn- fetch-single [this t]
   (create-dir this t)
-  (with-open [out (io/output-stream (apply io/file (conj (get-download-dir t) (:name t))))]
+  (with-open [out (io/output-stream
+                   (apply io/file (conj (get-download-dir t) (:name t))))]
     (io/copy (:body (http/get (str (:remote-base-url this) (:name t))
                               {:as :stream
                                :basic-auth (:credentials this)
-                               :insecure? true})) out :buffer-size (* 1024 1024))))
+                               :insecure? true}))
+             out :buffer-size BUFFER_SIZE)))
 
 (defn- notify-sickbeard [this t]
   (try
-    ; we shouldn't assume sickbeard is local to our box
+    ; FIXME we shouldn't assume sickbeard is local to our box
     (http/get "http://127.0.0.1:8081/home/postprocess/processEpisode"
               { :query-params {:dir (join "/" (get-download-dir this t))
                                :quiet "1"}})
@@ -98,6 +103,7 @@
   (info "[Job]: " job-id " started")
   (thread
     (loop []
+      (info "Waiting for download...")
       (when-let [t (<!! (:download-queue this))]
         (do-download this t)
         (recur)))
@@ -114,7 +120,8 @@
   "looks for things that should be unpacked"
   (thread
     (doseq [t (db/by-state :downloaded)]
-      (unpack-torrent this t))))
+      (unpack-torrent this t)
+      (db/update-torrent! (assoc t :state :complete)))))
 
 (defrecord Downloader [dir download-queue jobs credentials remote-base-url
                        sickbeard-post-process-url concurrent-downloads]
@@ -125,6 +132,7 @@
       ;; FIXME code is ugly here
       (let [num-jobs (:concurrent-downloads this)
             t (assoc this :download-queue (unique (chan num-jobs)))]
+        ;; FIXME these next two should be serial I think
         (populate-download-queue (:download-queue t))
         (unpack-downloads t)
         (assoc t :jobs (into [] (for [n (range num-jobs)]
@@ -139,7 +147,7 @@
       this)))
 
 (def ^:private defaults
-  {:concurrent-downloads 2
+  {:concurrent-downloads 1
    :sickbeard-post-process-url
    "http://127.0.0.1:8081/home/postprocess/processEpisode"})
 

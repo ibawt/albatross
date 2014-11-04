@@ -28,11 +28,11 @@
 
 (defn- check-seedbox [this]
   (doseq [t (get-polling-torrents)]
-    (info "checking:" t)
     (when (seedbox/is-complete? (:seedbox this) t)
-      (info "it's done")
-      (db/update-torrent! (assoc t :state :ready-to-download))
-      (>! (:download-queue (:downloader this)) t))))
+      (let [t-done (assoc t :state :ready-to-download)]
+        (db/update-torrent! t-done)
+        (infof "sending %s to download queue %s" (:name t-done) (:download-queue (:downloader this)))
+        (>! (:download-queue (:downloader this)) t-done)))))
 
 (defn- poller-fn [this]
   (poll-go-loop [stop-timeout]

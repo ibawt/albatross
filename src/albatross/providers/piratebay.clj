@@ -37,7 +37,7 @@
    (extract-links)
    (filter-for-magnets)
    (#(map db/parse-magnet %1))
-   (#(map fetch-magnet %1))
+   (#(pmap fetch-magnet %1))
    (#(remove nil? %1))
    (#(map make-magnet-link %1))))
 
