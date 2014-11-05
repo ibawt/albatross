@@ -1,4 +1,5 @@
 (ns albatross.core
+  (:gen-class)
   (:require
    [com.stuartsierra.component :as component]
    [environ.core :refer :all]

@@ -19,6 +19,7 @@
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [korma "0.4.0"]
                  [clj-http "1.0.0"]
+                 [http-kit "2.1.6"]
                  [ring/ring-defaults "0.1.1"]
                  [com.stuartsierra/component "0.2.1"]]
 
@@ -26,6 +27,8 @@
                 *print-level* 7}
 
   :min-lein-version "2.3.0"
+
+  :main albatross.core
 
   :source-paths ["src"]
 

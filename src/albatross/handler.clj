@@ -1,6 +1,7 @@
 (ns albatross.handler
   (:require [clojure.core.async :as async]
             [compojure.core :refer :all]
+            [org.httpkit.server :as http-kit]
             [compojure.route :as route]
             [ring.middleware.params :refer :all]
             [albatross.torrentdb :as db]
@@ -13,7 +14,6 @@
             [ring.util.response :refer [resource-response response]]
             [albatross.views.layout :as layout]
             [taoensso.timbre :as timbre]
-            [ring.server.standalone :as server]
             [clojure.java.io :as io]
             [albatross.myshows :as myshows]
             [clojure.string :as str]
@@ -102,10 +102,10 @@
   component/Lifecycle
   (start [this]
     (if-not server
-      (let [s (server/serve (app provider seedbox)
-                            {:port port
-                             :open-browser? false
-                             :stacktraces? true})]
+      (let [s (http-kit/run-server (app provider seedbox)
+                                            {:port port
+                                             :open-browser? false
+                                             :stacktraces? true})]
         (assoc this :server s))
       this))
 
