@@ -103,14 +103,15 @@
   (start [this]
     (if-not server
       (let [s (http-kit/run-server (app provider seedbox)
-                                            {:port port
-                                             :open-browser? false
-                                             :stacktraces? true})]
+                                   {:port port
+                                    :open-browser? false
+                                    :stacktraces? true})]
         (assoc this :server s))
       this))
 
   (stop [this]
-    (when server (.stop server))
+    (when server
+      (server))
     (assoc this :server nil)))
 
 (defn create-http-server [{port :port}]

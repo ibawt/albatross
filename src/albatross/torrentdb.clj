@@ -29,9 +29,7 @@
    (db/underscore-keys)))
 
 (defn parse-date [d]
-  (if d
-    (java.util.Date. d)
-    d))
+  (if d (java.util.Date. d) d))
 
 (defn- transform-torrent
   [t]

@@ -39,10 +39,11 @@
   (map->AlbatrossSystem {:config config
                          :db (albatross.db/create-database config)
                          :seedbox (seedbox/create-seedbox config)
-                         :downloader (downloader/create-downloader config)
+                         :downloader (component/using (downloader/create-downloader config)
+                                                      [:db])
                          :poller (component/using
                                   (albatross.poller/create-poller)
-                                  [:downloader :db :seedbox])
+                                  [:db :downloader :seedbox])
                          :provider (albatross.provider/create-provider config)
                          :app (component/using
                                (handler/create-http-server config)
