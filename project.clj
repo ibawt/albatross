@@ -4,7 +4,7 @@
   :license {:name "MIT"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [compojure "1.2.1"]
+                 [compojure "1.1.8"]
                  [necessary-evil "2.0.0"]
                  [environ "1.0.0"]
                  [bencode "0.2.5"]
@@ -13,14 +13,15 @@
                  [enlive "1.1.5"]
                  [cheshire "5.3.1"]
                  [org.clojure/core.async "0.1.303.0-886421-alpha"]
-                 [com.taoensso/timbre "3.3.1"]
+                 [com.taoensso/timbre "3.2.1"]
                  [org.clojure/data.zip "0.1.1"]
-                 [org.clojure/java.jdbc "0.3.6"]
-                 [org.xerial/sqlite-jdbc "3.8.7"]
+                 [org.clojure/java.jdbc "0.3.5"]
+                 [org.xerial/sqlite-jdbc "3.7.2"]
                  [korma "0.4.0"]
-                 [clj-http "1.0.1"]
-                 [ring/ring-defaults "0.1.2"]
-                 [com.stuartsierra/component "0.2.2"]]
+                 [clj-http "1.0.0"]
+                 [http-kit "2.1.6"]
+                 [ring/ring-defaults "0.1.1"]
+                 [com.stuartsierra/component "0.2.1"]]
 
   :global-vars {*print-length* 2048
                 *print-level* 7}
