@@ -112,6 +112,7 @@
 
   (stop [this]
     (when server
+      (info "stopping server")
       (.stop server))
     (assoc this :server nil)))
 

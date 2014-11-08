@@ -15,7 +15,9 @@
    [taoensso.timbre :as timbre]
    [albatross.downloader :as downloader]
    [albatross.core :as core]
-   [environ.core :refer :all]))
+   [albatross.torrentdb :as db]
+   [environ.core :refer :all]
+   [korma.core :refer :all]))
 
 (timbre/refer-timbre)
 
@@ -60,3 +62,6 @@
 
 (defn test-search []
   (albatross.provider/search-show (:provider system) albatross.provider/test-params))
+
+(defn torrents-by-id [& ids]
+  (select db/torrents (where {:id [in ids]})))

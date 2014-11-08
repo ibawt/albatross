@@ -23,11 +23,12 @@
 
 (def ^:private poll-sleep-time 5000)
 
-(def ^:private get-polling-torrents
+(def get-polling-torrents
   (partial db/by-state :seedbox))
 
 (defn- check-seedbox [this]
   (doseq [t (get-polling-torrents)]
+    (infof "polling[%d]: %s" (:id t) (:name t))
     (when (seedbox/is-complete? (:seedbox this) t)
       (let [t-done (assoc t :state :ready-to-download)]
         (db/update-torrent! t-done)
@@ -54,9 +55,8 @@
 
   (stop [this]
     (if poller
-      (do
-        (close! poller)
-        (dissoc this :poller))
+      (do (close! poller)
+          (dissoc this :poller))
       this)))
 
 (defn create-poller []

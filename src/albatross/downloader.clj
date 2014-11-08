@@ -89,6 +89,7 @@
         (errorf "Error un-archiving: %s output: %s" (:name t) (:out r))))))
 
 (defn- do-download [this t]
+  (infof "[%d] %s is ready for download" (:id t) (:name t))
   (try
     (when (= (:state t) :ready-to-download)
       (if (fetch-torrent this t)
