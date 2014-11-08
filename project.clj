@@ -21,11 +21,11 @@
                  [clj-http "1.0.0"]
                  [ring-server "0.3.1"]
                  [ring/ring-defaults "0.1.1"]
+                 [com.stuartsierra/component "0.2.1"]
                  [log4j "1.2.15" :exclusions [javax.mail/mail
                                               javax.jms/jms
                                               com.sun.jdmk/jmxtools
                                               com.sun.jmx/jmxri]]
-                 [com.stuartsierra/component "0.2.1"]
                  [org.apache.commons/commons-daemon "1.0.9"]]
 
   :global-vars {*print-length* 2048
