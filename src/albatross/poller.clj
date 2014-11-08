@@ -33,7 +33,7 @@
       (let [t-done (assoc t :state :ready-to-download)]
         (db/update-torrent! t-done)
         (infof "sending %s to download queue %s" (:name t-done) (:download-queue (:downloader this)))
-        (>! (:download-queue (:downloader this)) t-done)))))
+        (go (>! (:download-queue (:downloader this)) t-done))))))
 
 (defn- poller-fn [this]
   (poll-go-loop [stop-timeout]
