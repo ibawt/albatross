@@ -47,7 +47,6 @@
                     :dependencies [[javax.servlet/servlet-api "2.5"]
                                    [ring-mock "0.1.5"]
                                    [clj-http-fake "0.7.8"]
-                                   [ring-server "0.3.1"]
                                    [org.clojure/tools.namespace "0.2.5"]
                                    [pjstadig/humane-test-output "0.6.0"]]
 
