@@ -1,5 +1,4 @@
-(ns albatross.providers.utils
-  )
+(ns albatross.providers.utils)
 
 (defn format-number [s]
   (format "%02d" (Integer/parseInt s)))

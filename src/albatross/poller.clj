@@ -1,53 +1,63 @@
 (ns albatross.poller
   (:require [albatross.torrentdb :as db]
             [taoensso.timbre :as timbre]
-            [clj-http.client :as http]
-            [clojure.core.async :refer [go <! >! chan timeout alts! unique]]
+            [clojure.core.async :refer
+             [close! timeout chan go alt! >! >!! alts!]]
             [albatross.seedbox :as seedbox]
-            [albatross.downloader :as downloader]))
+            [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
 
-(def ^:private keep-polling (atom true))
+(defmacro sleep
+  ([ms stop-channel]
+     `(alts! [(timeout ~ms) ~stop-channel]))
+  ([ms]
+     `(<! (timeout ~ms))))
 
-(def num-channels 10)
+(defmacro poll-go-loop [bindings & body]
+  (let [stop (first bindings)]
+    `(let [~stop (chan)]
+       (go (while (alt! ~stop false :default :keep-going)
+             ~@body))
+       ~stop)))
 
-(def channel (unique (chan num-channels)))
+(def ^:private poll-sleep-time 5000)
 
-(defn poll-job []
-  (go
-    (while @keep-polling
-      (let [t-hash (<! channel)
-            t (get @db/db t-hash)]
-        (when (seedbox/is-complete? (get @db/db t-hash))
-          (info "PollJob " (:name t) " is complete!")
-          (db/update-torrent (assoc (get @db/db t-hash) :state :ready-to-download))
-          (>! downloader/download-channel t-hash))))))
+(def get-polling-torrents
+  (partial db/by-state :seedbox))
 
-(defn get-torrents-for-state [state]
-  (filter (fn [[k v]] (= (:state v) state)) @db/db))
+(defn- check-seedbox [this]
+  (doseq [t (get-polling-torrents)]
+    (infof "polling[%d]: %s" (:id t) (:name t))
+    (when (seedbox/is-complete? (:seedbox this) t)
+      (let [t-done (assoc t :state :ready-to-download)]
+        (db/update-torrent! t-done)
+        (infof "sending %s to download queue %s" (:name t-done) (:download-queue (:downloader this)))
+        (>! (:download-queue (:downloader this)) t-done)))))
 
-(defn get-polling-torrents []
-  (db/by-state :seedbox))
+(defn- poller-fn [this]
+  (poll-go-loop [stop-timeout]
+                (try
+                  (check-seedbox this)
+                  (catch Exception e
+                    (warn e)))
+                (sleep poll-sleep-time stop-timeout)))
 
-(defn get-ready-torrents []
-  (db/by-state :ready-to-download))
+(defn wake [this]
+  (>!! (:poller this)))
 
-(defn- poller []
-  (go
-    (while @keep-polling
-      (<! (timeout 5000))
-      (let [torrents (get-polling-torrents)]
-        (doseq [[k t] torrents]
-          (>! channel (:hash t))))
-      (doseq [[k t] (get-ready-torrents)]
-        (info "Sending " (:name t) " to download queue")
-        (>! downloader/download-channel (:hash t))))))
+(defrecord Poller [seedbox downloader poller]
+  component/Lifecycle
+  (start [this]
+    (if-not poller
+      (assoc this :poller (poller-fn this))
+      this))
 
-(defn start-poller []
-  (reset! keep-polling true)
-  (poller)
-  (poll-job))
+  (stop [this]
+    (if poller
+      (do (close! poller)
+          (dissoc this :poller))
+      this)))
 
-(defn stop-poller []
-  (reset! keep-polling false))
+(defn create-poller []
+  (map->Poller {}))

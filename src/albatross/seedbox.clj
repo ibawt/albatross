@@ -4,7 +4,7 @@
             [necessary-evil.core :as xmlrpc]
             [taoensso.timbre :as timbre]
             [environ.core :refer :all]
-            [albatross.torrent :as torrent]))
+            [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
 
@@ -26,49 +26,54 @@
    :is_active
    :is_hash_checked
    :is_multi_file
-   :is_open])
+   :is_open
+   :is_private])
 
-(def credentials
-  [(env :rtorrent-username)
-   (env :rtorrent-password)])
+(defn- request-params [this]
+  {:basic-auth (:credentials this) :insecure? true :debug false})
 
-(def request-params
-  {:basic-auth credentials :insecure? true :debug false})
+(defn- call [this cmd data]
+  (xmlrpc/call* (:endpoint-url this) cmd [data] :request (request-params this)))
 
-(def endpoint-url
-  (env :rtorrents-xmlrpc-url))
+(def ^:private get-torrent-attributes
+  (map #(str "d." (name %) "=") torrent-attributes))
 
-(defn- call [cmd data]
-  (xmlrpc/call* endpoint-url cmd [data] :request request-params))
-
-(defn send-to [t]
-  (call :load_raw_start t))
-
-(defn is-complete? [torrent]
-  (= "1" (call :d.complete (clojure.string/upper-case (:hash torrent)))))
-
-(def get-torrent-attributes
-  (vec (map #(str "d." % "=") torrent-attributes)))
-
-(defn torrent-list-by-hash [torrent-dicts]
+(defn- torrent-list-by-hash [torrent-dicts]
   (zipmap (map #(%1 "hash") torrent-dicts) torrent-dicts))
 
-(defn torrent-list-to-map [torrent-list]
-  (map #(into {} (map vector torrent-attributes %1)) torrent-list))
+(defn- torrent-list-to-map [torrent-list]
+  (map (partial zipmap torrent-attributes) torrent-list))
 
-(def list-torrent-arguments
-  (vec (concat ["main"] get-torrent-attributes)))
+(defn list-torrents [this]
+  (torrent-list-to-map (call this :d.multicall
+                             (conj get-torrent-attributes "main"))))
 
-(defn list-torrents []
-  (xmlrpc/call* endpoint-url "d.multicall" list-torrent-arguments :request request-params))
+(defn- action-to-call [action]
+  (keyword (str "d." (name action))))
 
-;; TODO make this work
-(defn get-torrent-by-hash [hash]
-  "doesn't work yet"
-  (xmlrpc/call* endpoint-url "system.multicall" (map #(hash-map "methodName" % "param" hash) get-torrent-attributes) :request request-params))
+(defn cmd [this action hash]
+  (call this (action-to-call action) hash))
 
-(defn get-all-remote-torrents []
-  (->
-   (list-torrents)
-   torrent-list-to-map
-   torrent-list-by-hash))
+(defn cmd-p [this action hash]
+  "same as send but implicity compares the result against the string 1"
+  (= "1" (cmd this action hash)))
+
+(defn send-to [this t]
+  (infof "sending %s[%d] to seedbox" (:id t) (:name t))
+  (call this :load_raw_start t))
+
+(defn is-complete? [this torrent]
+  (cmd-p this :complete (:info-hash torrent)))
+
+(defrecord Seedbox [credentials endpoint-url]
+  component/Lifecycle
+
+  (start [this]
+    this)
+
+  (stop [this]
+    this))
+
+(defn create-seedbox [config]
+  (map->Seedbox {:credentials [(get-in config [:rtorrent :username]) (get-in config [:rtorrent :password])]
+                 :endpoint-url (get-in config [:rtorrent :endpoint-url])}))

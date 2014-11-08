@@ -24,12 +24,9 @@
     (#"_" " ")
     (#"-$" "")))
 
-
-
 (defn clean-name [name]
   (reduce (fn [n [regex replace]]
             (.replaceAll (re-matcher regex n) replace)) name clean-subs))
-
 
 (defn analyze [name]
   )

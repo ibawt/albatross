@@ -5,37 +5,52 @@
             [taoensso.timbre :as timbre]
             [albatross.providers.iptorrents :as iptorrents]
             [albatross.providers.piratebay :as piratebay]
-            ))
+            [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
-(def providers
-  "a map of name to providers"
-  (atom {}))
 
-(defn add-provider! [provider]
+(defn add-provider [this provider]
   (info (format "Adding a provider: %s" (:name provider)))
-  (swap! providers assoc (:name provider) provider))
+  (assoc (:providers this) assoc (:name provider) provider))
 
 (defn torrent-from-hash [h]
   (str "http://torcache.net/torrent/" h ".torrent"))
 
-(defn filter-config [type]
-  (keep identity (map type (vals @providers))))
+(defn filter-config [this type]
+  (filter type (vals (:providers this))))
 
-; TODO complete
-(defn fetch-rss []
+;;; TODO complete
+(defn fetch-rss [this]
   "returns a list of rss-urls"
-  (:body (http/get (first (filter-config :rss-url)))))
+  (:body (http/get (:rss-url (first (filter-config this :rss-url))))))
 
-(defn search-show [params]
+;;; TODO clean this up
+(defn search-show [this params]
   "returns a list of urls to retreive the torrent at"
-  (info "search-show: " params)
-  (clojure.string/join "," (flatten
-                            (map #(%1 params) (filter-config :search-show)))))
+  (try
+    (info params)
+    (let [results
+          (flatten (map #((:search-show %1) %1 params) (filter-config this :search-show)))]
+      (info results)
+      (clojure.string/join "," results))
+    (catch Exception e
+      (warn e))))
 
-; TODO should be a config somewhere
-(add-provider! albatross.providers.iptorrents/config)
-(add-provider! albatross.providers.piratebay/config)
+
+(defrecord Provider [config providers]
+  component/Lifecycle
+
+  (start [this]
+    (if (nil? providers) ; just so we don't hammer iptorrents from the repl
+      (assoc this :providers {:iptorrents (iptorrents/create config)
+                              :piratebay (piratebay/create)})
+      this))
+
+  (stop [this]
+    this))
+
+(defn create-provider [config]
+  (map->Provider {:config config}))
 
 ; this should go somewhere else
 (def test-params {:description

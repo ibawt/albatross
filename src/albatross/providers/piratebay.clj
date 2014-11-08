@@ -3,39 +3,31 @@
             [net.cgrand.enlive-html :as html]
             [albatross.providers.utils :as utils]
             [taoensso.timbre :as timbre]
-            [albatross.torrentdb :as db]
-            [albatross.torrent :as torrent]))
+            [albatross.torrentdb :as db]))
 
-(defn extract-links [html]
+(timbre/refer-timbre)
+
+(defn- extract-links [html]
   (map #(get-in %1 [:attrs :href]) html))
 
-(defn filter-for-magnets [links]
+(defn- filter-for-magnets [links]
   (filter #(>= (.indexOf % "magnet") 0) links))
 
-(defn make-magnet-link [m]
+(defn- make-magnet-link [m]
   ; TODO lets not hardcode the port and host
   (str "http://localhost:3000/torrents/" (:name m) ".torrent?hash=" (:hash m)))
 
-(defn load-from-disk [t m]
-  (prn "loading from disk")
-  (let [b (torrent/torrent->bytes t)]
-    (assoc m :torrent b)))
-
-(defn download-and-save [m]
+(defn- download-and-save [m]
   (when-let [b (db/magnet->torrent m)]
-    (prn b)
-    (let [t (torrent/bytes->torrent b)]
-      (torrent/save-to-disk t b)
-      (db/update-torrent t)
-      (assoc m :torrent b))))
+    (assoc m :torrent (db/find-or-create-by-bytes b))))
 
-(defn fetch-magnet [m]
-  (let [t (db/hash->torrent (:hash m))]
+(defn- fetch-magnet [m]
+  (let [t (db/find-by-hash (:hash m))]
     (if t
-      (load-from-disk t m)
+      t
       (download-and-save m))))
 
-(defn search-piratebay [params]
+(defn- search-piratebay [config params]
   (->
    (http/get "https://thepiratebay.se/s/"
              {:query-params {:q (utils/make-search-query params)}})
@@ -45,12 +37,15 @@
    (extract-links)
    (filter-for-magnets)
    (#(map db/parse-magnet %1))
-   (#(map fetch-magnet %1))
+   (#(pmap fetch-magnet %1))
    (#(remove nil? %1))
    (#(map make-magnet-link %1))))
 
-(def config
+(def ^:private config
   {:search-show search-piratebay
    :name "The Pirate Bay"
    :backlog? false
    :magnet true})
+
+(defn create []
+  config)

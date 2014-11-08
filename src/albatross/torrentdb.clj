@@ -1,54 +1,95 @@
 (ns albatross.torrentdb
-  (:require [cheshire.core :refer :all]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [taoensso.timbre :as timbre]
             [clj-http.client :as http]
-            [ring.util.codec :refer [url-decode]]))
+            [ring.util.codec :refer [url-decode]]
+            [bencode.metainfo.reader :as bencode]
+            [korma.core :refer :all]
+            [albatross.db :as db]
+            [cheshire.core :refer [parse-string generate-string]]
+            [clojure.walk :refer [keywordize-keys stringify-keys]]))
 
 (timbre/refer-timbre)
 
-(def db (atom {}))
-
-(defn db-file []
-  (io/file (System/getProperty "user.home") "Torrents" "torrentdb.json"))
-
-(defn db-exists? []
-  (.exists (db-file)))
-
-(defn symbolize-state [d]
+(defn- symbolize-state [d]
  (update-in d [:state] keyword))
 
-(defn symbolize-params [params]
-  (into {} (for [[k v] params] [(keyword k) v])))
+(defn- stringify-state [d]
+  (update-in d [:state] name))
 
-(defn convert-json
-  "symbolizes the params and state value"
-  [json]
+(defn- last-id [res]
+  ((keyword "last-insert-rowid()") res))
+
+(defn- prepare-torrent
+  [t]
   (->
-   json
-   (symbolize-params)
-   (symbolize-state)))
+   t
+   (assoc :files (generate-string (:files t)))
+   (stringify-state)
+   (db/underscore-keys)))
 
-(defn load-db []
-  (with-open [reader (io/reader (db-file))]
-    (into {} (for [[k v] (parse-stream reader)] [k (convert-json v)]))))
+(defn parse-date [d]
+  (if d (java.util.Date. d) d))
 
-(defn load-or-create []
-  (when (db-exists?)
-    (info "Loading database from disk!")
-    (reset! db (load-db))))
+(defn- transform-torrent
+  [t]
+  (->
+   t
+   (assoc :files (keywordize-keys (parse-string (:files t))))
+   (symbolize-state)
+   (db/deunderscore-keys)
+   (update-in [:created-at] parse-date)
+   (update-in [:updated-at] parse-date)))
 
-(defn save-db! []
-  (io! (with-open [writer (io/writer (db-file))]
-         (.write writer (generate-string @db)))))
+(defentity torrents
+  (prepare prepare-torrent)
+  (transform transform-torrent))
 
-(defn update-torrent [torrent]
-  (debug "Updating torrent: " (:name torrent))
-  (swap! db assoc (:hash torrent) torrent)
-  (save-db!))
+(defn- bytes->torrent [bytes]
+  (let [t (bencode/parse-metainfo bytes)]
+    {:info-hash (clojure.string/lower-case (bencode/torrent-info-hash-str t))
+     :name (bencode/torrent-name t)
+     :state :created
+     :files (keywordize-keys (bencode/torrent-files t))
+     :size (bencode/torrent-size t)
+     :bytes bytes
+     :created-at (java.util.Date.)
+     :updated-at (java.util.Date.)}))
 
-(defn hash->torrent [hash]
-  (get @db hash))
+(defn find-by-hash [hash]
+  "Finds a torrent in the database by info hash"
+  (first (select torrents
+                 (where {:info_hash (clojure.string/lower-case hash)})
+                 (limit 1))))
+
+(defn update-torrent! [torrent]
+  "Updates a torrent in the database"
+  (update torrents (set-fields (assoc torrent :updated-at (java.util.Date.)))
+          (where {:id (:id torrent)})))
+
+(defn remove-torrent! [torrent]
+  "Removes a torrent from the database"
+  (delete torrents (where {:id (:id torrent)})))
+
+(defn clear-db! []
+  "Clear the torrent database"
+  (delete torrents))
+
+(defn search [pattern]
+  "Filters db by name"
+  (select torrents (where {:name [like pattern]})))
+
+(defn by-state [state]
+  "Filters by state"
+  (select torrents (where {:state (name state)})))
+
+(defn find-or-create-by-bytes [bytes]
+  "Returns or creates and returns the torrent object contained within bytes"
+  (let [t (bytes->torrent bytes)
+        db-t (find-by-hash (:info-hash t))]
+    (if db-t
+      db-t
+      (first (select torrents (where {:id (last-id (insert torrents (values t)))}) (limit 1))))))
 
 (defn parse-magnet [magnet]
   "takes a string and returns a map of the hash and name"
@@ -67,23 +108,3 @@
     (catch Exception e
       (info "no torrent found!")
       nil)))
-
-(defn clear-db! []
-  (io!
-   (debug "Clearing DB")
-   (when (db-exists?)
-     (.delete (db-file)))
-   (reset! db {})))
-
-(defn search [pattern]
-  (filter (fn [[k v]] (>= (.indexOf (:name v) pattern) 0)) @db))
-
-(defn by-state [state]
-  (filter (fn [[k v]] (= (:state v) state)) @db))
-
-(defn remove-torrent! [torrent]
-  (debug "Removing torrent: " (:name torrent))
-  (swap! db dissoc (:hash torrent))
-  (save-db!))
-
-(load-or-create)
