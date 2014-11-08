@@ -34,7 +34,6 @@
   :min-lein-version "2.3.0"
 
   :main albatross.core
-  :aot [albatross.core]
 
   :source-paths ["src"]
 
@@ -42,7 +41,7 @@
             [cider/cider-nrepl "0.8.0-SNAPSHOT"]
             [lein-environ "0.5.0"]]
 
-  :profiles { :dev {:injections [(require 'pjstadig.humane-test-output)
+  :profiles {:dev {:injections [(require 'pjstadig.humane-test-output)
                                  (pjstadig.humane-test-output/activate!)]
 
                     :dependencies [[javax.servlet/servlet-api "2.5"]
@@ -52,4 +51,5 @@
                                    [org.clojure/tools.namespace "0.2.5"]
                                    [pjstadig/humane-test-output "0.6.0"]]
 
-                    :source-paths ["dev"]}})
+                    :source-paths ["dev"]}
+             :uberjar {:aot :all}})

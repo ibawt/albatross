@@ -2,7 +2,8 @@
   (:require [albatross.tvdb :as tvdb]
             [korma.core :refer :all]
             [taoensso.timbre :as timbre]
-            [albatross.views.myshows.core :as view]))
+            ;; [albatross.views.myshows.core :as view]
+            ))
 
 (timbre/refer-timbre)
 
@@ -35,20 +36,20 @@
                                        :state "not-present"
                                        } ])) epis)))
 
-(defn index
-  []
-  (view/index (get-series)))
+;; (defn index
+;;   []
+;;   (view/index (get-series)))
 
-(defn new
-  []
-  (view/new))
-
+;; (defn new
+;;   []
+;;   (view/new))
+;; ;;
 (defn filter-search-results [results]
   (filter :first-aired (filter :imdb-id results)))
 
-(defn choose
-  [params]
-  (view/choose (filter-search-results (tvdb/search-series (str "*" (:q params) "*")))))
+;; (defn choose
+;;   [params]
+;;   (view/choose (filter-search-results (tvdb/search-series (str "*" (:q params) "*")))))
 
 (defn create
   [{db-id :show}]
@@ -77,6 +78,7 @@
         series (tvdb/tvdb-id->series (:series-id myshow))
         epis (group-and-sort id)]
 
-    (view/show series myshow epis)))
+    ;; (view/show series myshow epis)
+    ))
 
 (defn destroy [params])

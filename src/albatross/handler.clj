@@ -13,7 +13,6 @@
             [albatross.downloader :as downloader]
             [ring.middleware.defaults :refer :all]
             [ring.util.response :refer [resource-response response]]
-            [albatross.views.layout :as layout]
             [taoensso.timbre :as timbre]
             [clojure.java.io :as io]
             [albatross.myshows :as myshows]
@@ -62,11 +61,11 @@
    (:bytes)
    (java.io.ByteArrayInputStream.)))
 
-(defn render-layout [inner]
-  (clojure.string/join (layout/layout inner)))
+;; (defn render-layout [inner]
+;;   (clojure.string/join (layout/layout inner)))
 
-(defn render-partial [inner]
-  (str/join (net.cgrand.enlive-html/emit* inner)))
+;; (defn render-partial [inner]
+;;   (str/join (net.cgrand.enlive-html/emit* inner)))
 
 (defn app-routes [provider seedbox]
   (try
