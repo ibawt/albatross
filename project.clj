@@ -7,8 +7,8 @@
   :uberjar-name "albatross-standalone.jar"
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [compojure "1.1.8"]
-                 [necessary-evil "2.0.0"]
+                 [clj-time "0.8.0"]
+                 [compojure "1.2.1"]
                  [environ "1.0.0"]
                  [bencode "0.2.5"]
                  [commons-codec "1.9"]
@@ -16,20 +16,21 @@
                  [enlive "1.1.5"]
                  [cheshire "5.3.1"]
                  [org.clojure/core.async "0.1.303.0-886421-alpha"]
-                 [com.taoensso/timbre "3.2.1"]
+                 [com.taoensso/timbre "3.3.1"]
                  [org.clojure/data.zip "0.1.1"]
-                 [org.clojure/java.jdbc "0.3.5"]
-                 [org.xerial/sqlite-jdbc "3.7.2"]
+                 [org.clojure/java.jdbc "0.3.6"]
+                 [org.xerial/sqlite-jdbc "3.8.7"]
                  [korma "0.4.0"]
-                 [clj-http "1.0.0"]
+                 [clj-http "1.0.1"]
                  [ring-server "0.3.1"]
-                 [ring/ring-defaults "0.1.1"]
+                 [ring/ring-defaults "0.1.2"]
                  [com.stuartsierra/component "0.2.2"]
-                 [log4j "1.2.15" :exclusions [javax.mail/mail
+                 [log4j "1.2.17" :exclusions [javax.mail/mail
                                               javax.jms/jms
                                               com.sun.jdmk/jmxtools
                                               com.sun.jmx/jmxri]]
-                 [org.apache.commons/commons-daemon "1.0.9"]]
+                 [commons-daemon "1.0.15"]
+                 [necessary-evil "2.0.0"]]
 
   :global-vars {*print-length* 2048
                 *print-level* 7}
