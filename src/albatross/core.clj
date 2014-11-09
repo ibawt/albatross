@@ -39,8 +39,10 @@
 (defrecord AlbatrossSystem [config downloader poller]
   component/Lifecycle
   (start [this]
+    (info "Albatross system start...")
     (component/start-system this components))
   (stop [this]
+    (info "Albatross system stop...")
     (component/stop-system this components)))
 
 (defn albatross-system [config]
