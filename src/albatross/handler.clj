@@ -21,19 +21,19 @@
 
 (timbre/refer-timbre)
 
-(defn- logger
-  "custom logger without time"
-  [{:keys [level throwable message timestamp hostname ns]}
-   ;; Any extra appender-specific opts:
-   & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
-  ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
-  (format "%s [%s] - %s%s"
-          (-> level name clojure.string/upper-case) ns (or message "")
-          (or (timbre/stacktrace throwable "\n" (when nofonts? {})) "")))
+;; (defn- logger
+;;   "custom logger without time"
+;;   [{:keys [level throwable message timestamp hostname ns]}
+;;    ;; Any extra appender-specific opts:
+;;    & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
+;;   ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
+;;   (format "%s [%s] - %s%s"
+;;           (-> level name clojure.string/upper-case) ns (or message "")
+;;           (or (timbre/stacktrace throwable "\n" (when nofonts? {})) "")))
 
 (timbre/set-config! [:appenders :spit :enabled?] true)
 (timbre/set-config! [:shared-appender-config :spit-filename] "albatross.log")
-(timbre/merge-config! {:fmt-output-fn logger})
+;(timbre/merge-config! {:fmt-output-fn logger})
 
 (def home-dir
   "we place our torrents here"
