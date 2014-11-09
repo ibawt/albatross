@@ -24,7 +24,7 @@
                  [clj-http "1.0.0"]
                  [ring-server "0.3.1"]
                  [ring/ring-defaults "0.1.1"]
-                 [com.stuartsierra/component "0.2.1"]
+                 [com.stuartsierra/component "0.2.2"]
                  [log4j "1.2.15" :exclusions [javax.mail/mail
                                               javax.jms/jms
                                               com.sun.jdmk/jmxtools
@@ -50,7 +50,7 @@
                     :dependencies [[javax.servlet/servlet-api "2.5"]
                                    [ring-mock "0.1.5"]
                                    [clj-http-fake "0.7.8"]
-                                   [org.clojure/tools.namespace "0.2.5"]
+                                   [org.clojure/tools.namespace "0.2.7"]
                                    [pjstadig/humane-test-output "0.6.0"]]
 
                     :source-paths ["dev"]}
