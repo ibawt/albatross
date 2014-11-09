@@ -41,18 +41,10 @@
 
   :source-paths ["src"]
 
-  :plugins [[lein-ring "0.8.10"]
-            [cider/cider-nrepl "0.8.0-SNAPSHOT"]
-            [lein-environ "0.5.0"]]
+  :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
+                                  [ring-mock "0.1.5"]
+                                  [clj-http-fake "0.7.8"]
+                                  [org.clojure/tools.namespace "0.2.7"]]
 
-  :profiles {:dev {:injections [(require 'pjstadig.humane-test-output)
-                                 (pjstadig.humane-test-output/activate!)]
-
-                    :dependencies [[javax.servlet/servlet-api "2.5"]
-                                   [ring-mock "0.1.5"]
-                                   [clj-http-fake "0.7.8"]
-                                   [org.clojure/tools.namespace "0.2.7"]
-                                   [pjstadig/humane-test-output "0.6.0"]]
-
-                    :source-paths ["dev"]}
+                   :source-paths ["dev"]}
              :uberjar {:aot :all}})

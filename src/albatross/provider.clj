@@ -51,20 +51,3 @@
 
 (defn create-provider [config]
   (map->Provider {:config config}))
-
-; this should go somewhere else
-(def test-params {:description
-                  "Penny squares off with a new beautiful female neighbor who may become the building's \"new Penny.\"",
-                  :name "The Dead Hooker Juxtaposition",
-                  :hastbn "False",
-                  :hasnfo "False",
-                  :airdate "733496",
-                  :file_size "0",
-                  :release_name "",
-                  :season "5",
-                  :show_name "The Big Bang Theory",
-                  :status "5",
-                  :episode "19",
-                  :tvdbid "461831",
-                  :location "",
-                  :showid "80379"})

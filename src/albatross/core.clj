@@ -46,23 +46,24 @@
     (component/stop-system this components)))
 
 (defn albatross-system [config]
-  (map->AlbatrossSystem {:config config
-                         :db (albatross.db/create-database config)
-                         :seedbox (seedbox/create-seedbox config)
-                         :downloader (component/using (downloader/create-downloader config)
-                                                      [:db])
-                         :poller (component/using
-                                  (albatross.poller/create-poller)
-                                  [:db :downloader :seedbox])
-                         :provider (albatross.provider/create-provider config)
-                         :app (component/using
-                               (handler/create-http-server config)
-                               [:provider :seedbox])}))
+  (component/system-map :config config
+                        :db (albatross.db/create-database config)
+                        :seedbox (seedbox/create-seedbox config)
+                        :downloader (component/using
+                                     (downloader/create-downloader config)
+                                     [:db])
+                        :poller (component/using
+                                 (albatross.poller/create-poller)
+                                 [:db :downloader :seedbox])
+                        :provider (albatross.provider/create-provider config)
+                        :app (component/using
+                              (handler/create-http-server config)
+                              [:provider :seedbox])))
 
 (def albatross-app nil)
 
 (defn -main [& args]
-  (component/start
+  (component/start-system
    (albatross-system config)))
 
 ;; Daemon implementation

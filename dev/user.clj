@@ -38,14 +38,14 @@
 (defn start
   "Starts the system running, updates the Var #'system."
   []
-  (alter-var-root #'system component/start))
+  (alter-var-root #'system component/start-system))
 
 (defn stop
   "Stops the system if it is currently running, updates the Var
   #'system."
   []
   (alter-var-root #'system
-   (fn [s] (when s (component/stop s)))))
+   (fn [s] (when s (component/stop-system s)))))
 
 (defn go
   "Initializes and starts the system running."
@@ -59,9 +59,6 @@
   []
   (stop)
   (refresh :after 'user/go))
-
-(defn test-search []
-  (albatross.provider/search-show (:provider system) albatross.provider/test-params))
 
 (defn torrents-by-id [& ids]
   (select db/torrents (where {:id [in ids]})))
