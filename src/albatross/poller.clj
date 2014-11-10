@@ -32,7 +32,7 @@
     (when (seedbox/is-complete? (:seedbox this) t)
       (let [t-done (assoc t :state :ready-to-download)]
         (db/update-torrent! t-done)
-        (infof "sending %s to download queue %s" (:name t-done) (:download-queue (:downloader this)))
+        (infof "sending %s to download queue" (:name t-done))
         (go (>! (:download-queue (:downloader this)) t-done))))))
 
 (defn- poller-fn [this]
@@ -44,7 +44,7 @@
                 (sleep poll-sleep-time stop-timeout)))
 
 (defn wake [this]
-  (>!! (:poller this)))
+  (go (>! (:poller this))))
 
 (defrecord Poller [seedbox downloader poller]
   component/Lifecycle
