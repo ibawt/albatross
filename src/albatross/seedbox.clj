@@ -59,7 +59,6 @@
   (= "1" (cmd this action hash)))
 
 (defn send-to [this t]
-  (infof "sending %s[%d] to seedbox" (:id t) (:name t))
   (call this :load_raw_start t))
 
 (defn is-complete? [this torrent]

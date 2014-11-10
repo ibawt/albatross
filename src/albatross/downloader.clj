@@ -52,7 +52,7 @@
 (defn- fetch-single [this t]
   (create-dir this t)
   (with-open [out (io/output-stream
-                   (apply io/file (conj (get-download-dir t) (:name t))))]
+                   (apply io/file (conj (get-download-dir this t) (:name t))))]
     (io/copy (:body (http/get (str (:remote-base-url this) (:name t))
                               {:as :stream
                                :basic-auth (:credentials this)

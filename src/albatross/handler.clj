@@ -36,7 +36,9 @@
   (info "send-torrent-from-post: " request)
   (let [decoded-torrent (ring.util.codec/base64-decode (:file request))]
     (db/update-torrent!
-     (assoc (db/find-or-create-by-bytes decoded-torrent) :state :seedbox))
+     (let [t (assoc (db/find-or-create-by-bytes decoded-torrent) :state :seedbox)]
+       (infof "Sending [%d] %s to seedbox" (:id t) (:name t))
+       t))
     (seedbox/send-to seedbox decoded-torrent)
     "OK"))
 
@@ -54,7 +56,6 @@
      (POST "/send_torrent" {params :params} (send-torrent-from-post seedbox params))
      (GET "/torrents/:id" {params :params} (torrent-by-hash params))
      (GET "/rss" request (provider/fetch-rss provider))
-
      (route/resources "/")
      (route/not-found "Not Found"))
     (catch Exception e
