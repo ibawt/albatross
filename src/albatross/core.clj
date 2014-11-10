@@ -74,6 +74,10 @@
 (defn -start [this]
   (future (alter-var-root #'albatross-app component/start)))
 
+(defn -destroy [this]
+  (info "Destroying Albatross")
+  (alter-var-root #'albatross-app nil))
+
 (defn -stop [this]
   (alter-var-root #'albatross-app
                   (fn [s] (when s (component/stop s)))))

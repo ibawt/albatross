@@ -51,6 +51,7 @@
 
 (defn- fetch-single [this t]
   (create-dir this t)
+  (infof "Downloading [%d] %s" (:id t) (:name t))
   (with-open [out (io/output-stream
                    (apply io/file (conj (get-download-dir this t) (:name t))))]
     (io/copy (:body (http/get (str (:remote-base-url this) (:name t))
@@ -94,6 +95,7 @@
     (when (= (:state t) :ready-to-download)
       (if (fetch-torrent this t)
         (do
+          (infof "[%d] %s fetched unpacking..." (:id t) (:name t))
           (db/update-torrent! (assoc t :state :downloaded))
           (unpack-torrent this t)
           (notify-sickbeard this t))))
@@ -106,6 +108,7 @@
     (loop []
       (info "Waiting for download...")
       (when-let [t (<!! (:download-queue this))]
+        (info "Got torrent to download: " (:name t))
         (do-download this t)
         (recur)))
     (info "[Job]: " job-id " stopped")))
