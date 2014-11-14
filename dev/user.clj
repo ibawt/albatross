@@ -16,6 +16,7 @@
    [albatross.downloader :as downloader]
    [albatross.core :as core]
    [albatross.torrentdb :as db]
+   [albatross.seedbox :as seedbox]
    [environ.core :refer :all]
    [korma.core :refer :all]))
 
@@ -62,3 +63,13 @@
 
 (defn torrents-by-id [& ids]
   (select db/torrents (where {:id [in ids]})))
+
+
+(defn sync-torrents []
+  (let [remote-torrents (seedbox/list-torrents (:seedbox system))]
+    (map (fn [r]
+           (let [mine (db/find-by-hash (:hash r))]
+             (if mine
+               (merge mine (create-local-torrent r))
+               (create-local-torrent r))))
+         remote-torrents)))

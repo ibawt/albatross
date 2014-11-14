@@ -3,9 +3,7 @@
   :url "https://github.com/ibawt/albatross"
   :license {:name "MIT"
             :url "http://opensource.org/licenses/MIT"}
-
   :uberjar-name "albatross-standalone.jar"
-
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [clj-time "0.8.0"]
                  [compojure "1.2.1"]

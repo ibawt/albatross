@@ -62,7 +62,6 @@
 
 (defn- notify-sickbeard [this t]
   (try
-    ; FIXME we shouldn't assume sickbeard is local to our box
     (http/get "http://127.0.0.1:8081/home/postprocess/processEpisode"
               { :query-params {:dir (join "/" (get-download-dir this t))
                                :quiet "1"}})
