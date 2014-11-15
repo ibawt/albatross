@@ -66,6 +66,21 @@
   (select db/torrents (where {:id [in ids]})))
 
 
+(def test-search
+  {:description "Archer and Lana extract an agent from Morocco only to find out his bark is worse than his bite.",
+   :name "Un Chien Tangerine",
+   :hastbn "False",
+   :hasnfo "False",
+   :airdate 734948,
+   :file_size 0,
+   :release_name "",
+   :season "4",
+   :show_name "Archer (2009)",
+   :status 102,
+   :episode "10",
+   :tvdbid 4491203,
+   :location "",
+   :showid 110381})
 ;; (defn sync-torrents []
 ;;   (let [remote-torrents (seedbox/list-torrents (:seedbox system))]
 ;;     (map (fn [r]

@@ -3,6 +3,7 @@
             [environ.core :refer :all]
             [net.cgrand.enlive-html :as enlive]
             [taoensso.timbre :as timbre]
+            [albatross.providers.btn :as btn]
             [albatross.providers.iptorrents :as iptorrents]
             [albatross.providers.piratebay :as piratebay]
             [com.stuartsierra.component :as component]))
@@ -42,7 +43,8 @@
 
   (start [this]
     (if (nil? providers) ; just so we don't hammer iptorrents from the repl
-      (assoc this :providers {:iptorrents (iptorrents/create config)
+      (assoc this :providers {:btn (btn/create config)
+                              :iptorrents (iptorrents/create config)
                               :piratebay (piratebay/create)})
       this))
 
