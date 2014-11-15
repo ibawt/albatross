@@ -9,16 +9,15 @@
 
 (def ^:private btn-url "http://api.btnapps.net")
 
-(def ^:private btn-cache (atom {}))
-
 (defn uuid [] (str (java.util.UUID/randomUUID)))
 
+(defn- to-number [n]
+  (if (string? n) (Integer/parseInt n) n))
 
 (defn- create-query [show-params]
   {:series (:show_name show-params)
    :origin "scene"
-   :name (format "S%02dE%02d" (Integer/parseInt (:season show-params)) (Integer/parseInt (:episode show-params)))})
-
+   :name (format "S%02dE%02d" (to-number (:season show-params))  (to-number (:episode show-params)))})
 
 (defn- json-rpc-body [api-key method params]
   (generate-string {:method method :params [api-key params 25]
@@ -37,9 +36,9 @@
   (db/find-or-create-by-bytes (:body (http/get (:DownloadURL show) {:as :byte-array}))))
 
 (defn search-show [config params]
-  (info "search-show " config params)
   (let [results (search-results config params)]
     (doseq [[k t] results]
+      (info "fetching " (:ReleaseName t))
       (fetch-torrent (:api-key config) t))
     (map make-link results)))
 
