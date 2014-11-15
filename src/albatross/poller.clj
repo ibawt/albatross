@@ -21,7 +21,7 @@
              ~@body))
        ~stop)))
 
-(def ^:private poll-sleep-time 5000)
+(def ^:private poll-sleep-time (* 30 60 1000))
 
 (def get-polling-torrents
   (partial db/by-state :seedbox))
