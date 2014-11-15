@@ -18,6 +18,7 @@
    [albatross.torrentdb :as db]
    [albatross.seedbox :as seedbox]
    [environ.core :refer :all]
+   [clj-http.client :as http]
    [korma.core :refer :all]))
 
 (timbre/refer-timbre)
@@ -65,11 +66,11 @@
   (select db/torrents (where {:id [in ids]})))
 
 
-(defn sync-torrents []
-  (let [remote-torrents (seedbox/list-torrents (:seedbox system))]
-    (map (fn [r]
-           (let [mine (db/find-by-hash (:hash r))]
-             (if mine
-               (merge mine (create-local-torrent r))
-               (create-local-torrent r))))
-         remote-torrents)))
+;; (defn sync-torrents []
+;;   (let [remote-torrents (seedbox/list-torrents (:seedbox system))]
+;;     (map (fn [r]
+;;            (let [mine (db/find-by-hash (:hash r))]
+;;              (if mine
+;;                (merge mine (create-local-torrent r))
+;;                (create-local-torrent r))))
+;;          remote-torrents)))
