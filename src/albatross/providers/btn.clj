@@ -21,7 +21,7 @@
 
 (defn- json-rpc-body [api-key method params]
   (generate-string {:method method :params [api-key params 25]
-                    :id 1}))
+                    :id (uuid)}))
 
 (defn- call [body]
   (:body (http/post btn-url {:body body :content-type "application/json-rpc" :as :json})))

@@ -21,7 +21,7 @@
              ~@body))
        ~stop)))
 
-(def ^:private poll-sleep-time (* 30 60 1000))
+(def ^:private poll-sleep-time (* 5 60 1000))
 
 (def get-polling-torrents
   (partial db/by-state :seedbox))
@@ -39,6 +39,7 @@
   (poll-go-loop [stop-timeout]
                 (try
                   (check-seedbox this)
+                  (db/clear-stale-torrents)
                   (catch Exception e
                     (warn e)))
                 (sleep poll-sleep-time stop-timeout)))

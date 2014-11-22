@@ -4,8 +4,7 @@
   (:require [albatross.utils :as utils]
             [albatross.db :as db]
             [clojure.java.io :as io]
-            [korma.core :refer :all]
-            ))
+            [korma.core :refer :all]))
 
 (def magnet-link "magnet:?xt=urn:btih:4015ab9713a0ff6e12167c5d71eba4c5975f8669&dn=Transcendence+%282014%29+WEB-DL+XviD-MAX&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80&tr=udp%3A%2F%2Ftracker.publicbt.com%3A80&tr=udp%3A%2F%2Ftracker.istole.it%3A6969&tr=udp%3A%2F%2Fopen.demonii.com%3A1337")
 
@@ -34,9 +33,9 @@
 
 (use-fixtures :once wrap-all-tests)
 
-(defn wrap-tests [fn]
+(defn wrap-tests [f]
   (korma.db/transaction
-   (fn)
+   (f)
    (korma.db/rollback)))
 
 (use-fixtures :each wrap-tests)
@@ -111,3 +110,9 @@
   (testing "simple search by name"
     (is (= 3 (count (search "%BLAGUM%"))))
     (is (= 1 (count (search "foobar%"))))))
+
+(def one-week
+  (* 1000 60 60 24 7))
+
+(deftest stale-torrents-test
+  (insert torrents (values {:name "BLAGUM" :updated-at (java.util.Date. (- (System/currentTimeMillis) (* 4 one-week)))})))
