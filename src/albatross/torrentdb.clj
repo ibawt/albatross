@@ -34,10 +34,6 @@
 (defn- stale-date []
   (java.util.Date. (- (System/currentTimeMillis) (* 1000 60 24))))
 
-(defn clear-stale-torrents []
-  (delete torrents (where {:state "created" :updated_at [< (stale-date)]})))
-
-
 (defn- transform-torrent
   [t]
   (->
@@ -51,6 +47,9 @@
 (defentity torrents
   (prepare prepare-torrent)
   (transform transform-torrent))
+
+(defn clear-stale-torrents []
+  (delete torrents (where {:state "created" :updated_at [< (stale-date)]})))
 
 (defn- bytes->torrent [bytes]
   (let [t (bencode/parse-metainfo bytes)]

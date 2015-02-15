@@ -1,12 +1,17 @@
 (ns albatross.poller
   (:require [albatross.torrentdb :as db]
             [taoensso.timbre :as timbre]
+            [albatross.downloader :as downloader]
             [clojure.core.async :refer
              [close! timeout chan go alt! >! >!! alts!]]
             [albatross.seedbox :as seedbox]
             [com.stuartsierra.component :as component]))
 
 (timbre/refer-timbre)
+
+(defmacro dbg [& body]
+  `(let [x# ~body]
+     (println (quote ~body) "=" x#) x#))
 
 (defmacro sleep
   ([ms stop-channel]
@@ -35,6 +40,22 @@
         (infof "sending %s to download queue" (:name t-done))
         (go (>! (:download-queue (:downloader this)) t-done))))))
 
+(defn- filter-not-in-db [this torrents]
+  (filter #(not (db/find-by-hash (:hash %))) torrents))
+
+(defn- add-to-db [this torrents]
+  (doseq [t torrents]
+    (-> (db/find-or-create-by-bytes (downloader/get-torrent-file (:downloader this) (:hash t)))
+        (assoc :state :seedbox)
+        (db/update-torrent!))))
+
+(defn sync-torrentdb [this]
+  (let [torrents (seedbox/list-torrents (:seedbox this))]
+    ;; find the ones not in my
+    (->> torrents
+         (filter-not-in-db this)
+         (add-to-db this))))
+
 (defn- poller-fn [this]
   (poll-go-loop [stop-timeout]
                 (try
@@ -57,7 +78,7 @@
   (stop [this]
     (if poller
       (do (close! poller)
-          (dissoc this :poller))
+          (assoc this :poller nil))
       this)))
 
 (defn create-poller []

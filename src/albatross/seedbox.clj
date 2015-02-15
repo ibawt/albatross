@@ -17,6 +17,7 @@
    :creation_date
    :bytes_done
    :up.rate
+   :get_loaded_file
    :down.rate
    :get_message
    :peers_complete
