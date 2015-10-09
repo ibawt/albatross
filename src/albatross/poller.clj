@@ -51,7 +51,6 @@
 
 (defn sync-torrentdb [this]
   (let [torrents (seedbox/list-torrents (:seedbox this))]
-    ;; find the ones not in my
     (->> torrents
          (filter-not-in-db this)
          (add-to-db this))))
@@ -59,8 +58,10 @@
 (defn- poller-fn [this]
   (poll-go-loop [stop-timeout]
                 (try
+                  (info "polling...")
                   (check-seedbox this)
                   (db/clear-stale-torrents)
+                  (sync-torrentdb this)
                   (catch Exception e
                     (warn e)))
                 (sleep poll-sleep-time stop-timeout)))
