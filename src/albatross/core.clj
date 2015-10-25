@@ -34,6 +34,7 @@
                 :password (env :iptorrents-password)
                 :rss-url (env :iptorrents-rss-url)
                 :pass (env :iptorrents-torrent-pass)}
+   :btn { :api-key (env :btn-api-key)}
    :db-file db-file})
 
 (defrecord AlbatrossSystem [config downloader poller]

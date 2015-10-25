@@ -49,6 +49,9 @@
       (download-file this (join "/" path) t (get file :length))))
   (db/update-torrent! (assoc t :state :done)))
 
+(defn get-torrent-file [this hash]
+  (:body (http/get (str (:remote-base-url this) "torrents/" hash ".torrent") {:insecure? true :as :byte-array})))
+
 (defn- fetch-single [this t]
   (create-dir this t)
   (infof "Downloading [%d] %s" (:id t) (:name t))
@@ -62,12 +65,10 @@
 
 (defn- notify-sickbeard [this t]
   (try
-    ; FIXME we shouldn't assume sickbeard is local to our box
     (http/get "http://127.0.0.1:8081/home/postprocess/processEpisode"
               { :query-params {:dir (join "/" (get-download-dir this t))
                                :quiet "1"}})
     (catch Exception e)))
-
 (defn- fetch-torrent [this t]
   (try
     (if-not (nil? (:files t))

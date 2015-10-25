@@ -184,4 +184,4 @@
     (save-episodes (parse-episodes (filter-for-tag :Episode parsed-xml)))
     (save-series (parse-search-series-response (filter-for-tag :Series parsed-xml)))))
 
-(def ^:dynamic *last-server-time* (atom (get-current-server-time)))
+(def last-server-time (atom (get-current-server-time)))

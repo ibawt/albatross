@@ -31,6 +31,9 @@
 (defn parse-date [d]
   (if d (java.util.Date. d) d))
 
+(defn- stale-date []
+  (java.util.Date. (- (System/currentTimeMillis) (* 1000 60 24))))
+
 (defn- transform-torrent
   [t]
   (->
@@ -44,6 +47,9 @@
 (defentity torrents
   (prepare prepare-torrent)
   (transform transform-torrent))
+
+(defn clear-stale-torrents []
+  (delete torrents (where {:state "created" :updated_at [< (stale-date)]})))
 
 (defn- bytes->torrent [bytes]
   (let [t (bencode/parse-metainfo bytes)]
@@ -96,8 +102,7 @@
   {:src magnet
    :hash (second (re-find #"urn:btih:([\w]{32,40})" magnet))
    :name (url-decode (second (re-find #"dn=(.*?)&" magnet)))
-   :trackers (map url-decode (drop 1 (clojure.string/split magnet #"tr=" )))
-   })
+   :trackers (map url-decode (drop 1 (clojure.string/split magnet #"tr=" )))})
 
 (defn magnet->torrent [m]
   "gets a torrent file from the public torrent cache"

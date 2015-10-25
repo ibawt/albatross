@@ -29,7 +29,7 @@
 
 (defn- search-piratebay [config params]
   (->
-   (http/get "https://thepiratebay.se/s/"
+   (http/get "https://thepiratebay.cr/s/"
              {:query-params {:q (utils/make-search-query params)}})
    (:body)
    (html/html-snippet)
