@@ -2,6 +2,7 @@
   "Tools for interactive development with the REPL. This file should
   not be included in a production build of the application."
   (:require
+   [com.stuartsierra.component :as component]
    [clojure.java.io :as io]
    [clojure.java.javadoc :refer [javadoc]]
    [clojure.pprint :refer [pprint]]
@@ -11,7 +12,6 @@
    [clojure.string :as str]
    [clojure.test :as test]
    [clojure.tools.namespace.repl :refer [refresh refresh-all]]
-   [com.stuartsierra.component :as component]
    [taoensso.timbre :as timbre]
    [albatross.downloader :as downloader]
    [albatross.core :as core]

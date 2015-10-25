@@ -43,7 +43,7 @@
 
   (start [this]
     (if (nil? providers) ; just so we don't hammer iptorrents from the repl
-      (assoc this :providers {;:btn (btn/create config)
+      (assoc this :providers {:btn (btn/create config)
                               :iptorrents (iptorrents/create config)
                               })
       this))
